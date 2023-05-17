@@ -118,3 +118,5 @@ Remote debugging using :2000
 Black Magic Debug App also provides for Flashing, reading and verification of a binary file,
 by default starting at lowest flash address. The `-t` argument displays information about the
 connected target. Use `-h`/`--help` to get a list of supported options.
+
+do ``mon debug en`` to enable debug message print.
