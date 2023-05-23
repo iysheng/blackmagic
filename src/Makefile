@@ -13,6 +13,7 @@ endif
 CFLAGS += -Wall -Wextra -Werror -Wreturn-type \
 	-Wno-char-subscripts \
 	-std=c11 -g3 -MD -I./target \
+	-Os \
 	-I. -Iinclude -I$(PLATFORM_DIR)
 
 ifeq (filter, macosx darwin, $(SYS))
@@ -51,11 +52,9 @@ SRC =              \
 	lpc43xx.c      \
 	lpc546xx.c     \
 	lpc55xx.c      \
-	kinetis.c      \
 	main.c         \
 	maths_utils.c  \
 	morse.c        \
-	msp432.c       \
 	nrf51.c        \
 	nxpke04.c      \
 	remote.c       \

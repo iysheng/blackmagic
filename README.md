@@ -120,3 +120,4 @@ by default starting at lowest flash address. The `-t` argument displays informat
 connected target. Use `-h`/`--help` to get a list of supported options.
 
 do ``mon debug en`` to enable debug message print.
+在 Linux 敲如下命令: ``sudo dfu-util -d 1d50:6018,:6017 -s 0x08002000:leave -D src/blackmagic.bin`` 更新固件
