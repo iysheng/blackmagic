@@ -62,7 +62,7 @@ extern char vector_table;
  * 000 - 0xffff -   0 - Original production build.
  * 001 - 0xffff -   1 - Mini production build.
  * 010 - 0xffff -   2 - Mini V2.0e and later.
- * 011 - 0xffff -   3 - Mini V2.1a and later.
+ * 011 - 0xffff -   3 - Mini V2.1a and later.  版本应该是这个值 3
  * 011 - 0xfb04 -   4 - Mini V2.1d and later.
  * xxx - 0xfb05 -   5 - Mini V2.2a and later.
  * xxx - 0xfb06 -   6 - Mini V2.3a and later.
@@ -75,6 +75,7 @@ extern char vector_table;
  * inverse of the lower byte unless the byte is not set, then all bits in both
  * high and low byte are 0xff.
  */
+// 检查硬件版本
 int platform_hwversion(void)
 {
 	static int hwversion = -1;
@@ -145,6 +146,7 @@ void platform_init(void)
 	rcc_periph_clock_enable(RCC_USB);
 	rcc_periph_clock_enable(RCC_GPIOA);
 	rcc_periph_clock_enable(RCC_GPIOB);
+	/* 一般版本不会超过 6 */
 	if (platform_hwversion() >= 6)
 		rcc_periph_clock_enable(RCC_GPIOC);
 	rcc_periph_clock_enable(RCC_AFIO);
@@ -154,11 +156,16 @@ void platform_init(void)
 	gpio_clear(USB_PU_PORT, USB_PU_PIN);
 	gpio_set_mode(USB_PU_PORT, GPIO_MODE_INPUT, GPIO_CNF_INPUT_FLOAT, USB_PU_PIN);
 
+	// 设置 JTAG 相关管脚的模式, JTAG 管脚分布在 PA1-PA7 管脚
 	gpio_set_mode(JTAG_PORT, GPIO_MODE_OUTPUT_50_MHZ, GPIO_CNF_OUTPUT_PUSHPULL, TMS_DIR_PIN | TCK_PIN | TDI_PIN);
 	gpio_set_mode(JTAG_PORT, GPIO_MODE_OUTPUT_50_MHZ, GPIO_CNF_INPUT_FLOAT, TMS_PIN);
 
 	/* This needs some fixing... */
 	/* Toggle required to sort out line drivers... */
+	/* 设置 PA 和 PB 管脚的电平
+	 * 修改了 PA7 IRST_SENSE 管脚先拉低,再拉高
+	 * 修改了 PB1 PWR_BR 管脚先拉低,再拉高
+	 * */
 	gpio_port_write(GPIOA, 0x8102);
 	gpio_port_write(GPIOB, 0x2000);
 
@@ -171,6 +178,12 @@ void platform_init(void)
 		gpio_clear(TCK_DIR_PORT, TCK_DIR_PIN);
 	}
 
+	/*
+	 * 设置 3 个 LED 管脚为输出
+	 * UART  PB2
+	 * RUN   PB10
+	 * ERROR PB11
+	 * */
 	gpio_set_mode(LED_PORT, GPIO_MODE_OUTPUT_2_MHZ, GPIO_CNF_OUTPUT_PUSHPULL, LED_UART | LED_IDLE_RUN | LED_ERROR);
 
 	/*
@@ -179,6 +192,9 @@ void platform_init(void)
 	 * and set LOW to assert.
 	 */
 	platform_nrst_set_val(false);
+	/*
+	 * 设置复位管脚输出模式为上拉
+	 * */
 	gpio_set_mode(NRST_PORT, GPIO_MODE_OUTPUT_50_MHZ,
 		platform_hwversion() == 0 || platform_hwversion() >= 3 ? GPIO_CNF_OUTPUT_PUSHPULL : GPIO_CNF_OUTPUT_OPENDRAIN,
 		NRST_PIN);
@@ -190,6 +206,7 @@ void platform_init(void)
 		 */
 		gpio_set_mode(NRST_SENSE_PORT, GPIO_MODE_OUTPUT_2_MHZ, GPIO_CNF_OUTPUT_PUSHPULL, NRST_SENSE_PIN);
 	else {
+		/* 设置 NRST_SENSE 管脚 PA7 为上下拉输入 */
 		gpio_set(NRST_SENSE_PORT, NRST_SENSE_PIN);
 		gpio_set_mode(NRST_SENSE_PORT, GPIO_MODE_INPUT, GPIO_CNF_INPUT_PULL_UPDOWN, NRST_SENSE_PIN);
 	}
@@ -201,17 +218,27 @@ void platform_init(void)
 		gpio_set(PWR_BR_PORT, PWR_BR_PIN);
 		gpio_set_mode(PWR_BR_PORT, GPIO_MODE_INPUT, GPIO_CNF_INPUT_PULL_UPDOWN, PWR_BR_PIN);
 	} else if (platform_hwversion() > 1) {
+		/*
+		 * 设置 PWR PORT PB1 控制管脚开漏输出
+		 * */
 		gpio_set(PWR_BR_PORT, PWR_BR_PIN);
 		gpio_set_mode(PWR_BR_PORT, GPIO_MODE_OUTPUT_50_MHZ, GPIO_CNF_OUTPUT_OPENDRAIN, PWR_BR_PIN);
 	}
 
 	if (platform_hwversion() > 0)
+		/*
+		 * 设置 PB0 adc1 模式
+		 * */
 		adc_init();
 	else {
 		gpio_clear(GPIOB, GPIO0);
 		gpio_set_mode(GPIOB, GPIO_MODE_INPUT, GPIO_CNF_INPUT_PULL_UPDOWN, GPIO0);
 	}
 	/* Set up the NVIC vector table for the firmware */
+	/*
+	 * 设置向量表基地址
+	 * 定义在 ./libopencm3/lib/cm3/vector.c 文件中
+	 * */
 	SCB_VTOR = (uint32_t)&vector_table; // NOLINT(clang-diagnostic-pointer-to-int-cast)
 
 	platform_timing_init();
@@ -267,6 +294,7 @@ static void adc_init(void)
 {
 	rcc_periph_clock_enable(RCC_ADC1);
 
+	/* 关联 PB0 作为 ADC1 输入管脚 */
 	gpio_set_mode(TPWR_PORT, GPIO_MODE_INPUT, GPIO_CNF_INPUT_ANALOG, TPWR_PIN);
 
 	adc_power_off(ADC1);

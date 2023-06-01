@@ -185,6 +185,7 @@ void gdb_putpacket2(const char *const packet1, const size_t size1, const char *c
 	} while (gdb_if_getchar_to(2000) != '+' && tries++ < 3U);
 }
 
+/* 发送 gdb 数据包的协议 */
 void gdb_putpacket(const char *const packet, const size_t size)
 {
 	char xmit_csum[3];

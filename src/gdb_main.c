@@ -136,10 +136,12 @@ int gdb_main_loop(target_controller_s *tc, char *pbuf, size_t pbuf_size, size_t 
 		}
 		break;
 	}
+		/* 从指定地址读取指定长度的数据 */
 	case 'm': { /* 'm addr,len': Read len bytes from addr */
 		uint32_t addr, len;
 		ERROR_IF_NO_TARGET();
 		sscanf(pbuf, "m%" SCNx32 ",%" SCNx32, &addr, &len);
+		/* 如果读取的长度超过 gdb 缓冲区 1/2 的长度,那么输出错误 */
 		if (len > pbuf_size / 2U) {
 			gdb_putpacketz("E02");
 			break;
@@ -225,6 +227,7 @@ int gdb_main_loop(target_controller_s *tc, char *pbuf, size_t pbuf_size, size_t 
 		 * by calling gdb_poll_target() as long as `cur_target`
 		 * is not NULL and `gdb_target_running` is true.
 		 */
+		/* 这里标记待调试的 target 正在运行 */
 		gdb_target_running = true;
 		break;
 	}
@@ -687,6 +690,7 @@ static void handle_z_packet(char *packet, const size_t plen)
 
 void gdb_main(char *pbuf, size_t pbuf_size, size_t size)
 {
+	/* 解析 gdb 的命令字 */
 	gdb_main_loop(&gdb_controller, pbuf, pbuf_size, size, false);
 }
 

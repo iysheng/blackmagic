@@ -38,6 +38,9 @@ static void dfu_detach_complete(usbd_device *const dev, usb_setup_data_s *const 
 #endif
 }
 
+/*
+ * dfu 相关的回调函数
+ * */
 static usbd_request_return_codes_e dfu_control_request(usbd_device *const dev, usb_setup_data_s *req, uint8_t **buf,
 	uint16_t *len, void (**complete)(usbd_device *dev, usb_setup_data_s *req))
 {
@@ -65,6 +68,9 @@ static usbd_request_return_codes_e dfu_control_request(usbd_device *const dev, u
 	return USBD_REQ_NOTSUPP;
 }
 
+/*
+ * dfu 的回调函数
+ * */
 void dfu_set_config(usbd_device *const dev, const uint16_t value)
 {
 	(void)value;

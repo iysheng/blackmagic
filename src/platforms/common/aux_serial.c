@@ -338,6 +338,7 @@ size_t aux_serial_transmit_buffer_fullness(void)
 void aux_serial_switch_transmit_buffers(void)
 {
 	/* Make the buffer we've been filling the active DMA buffer, and swap to the other */
+	/* 通过 DMA 将发送缓冲区的数据发送出去 */
 	dma_set_memory_address(USBUSART_DMA_BUS, USBUSART_DMA_TX_CHAN, (uintptr_t)aux_serial_current_transmit_buffer());
 	dma_set_number_of_data(USBUSART_DMA_BUS, USBUSART_DMA_TX_CHAN, aux_serial_transmit_buffer_consumed);
 	dma_enable_channel(USBUSART_DMA_BUS, USBUSART_DMA_TX_CHAN);
@@ -447,9 +448,13 @@ void USBUSART_ISR(void)
 }
 #endif
 
+/*
+ * 串口接收中断,将串口接收到调试设备的信息通过 USB 转发出去
+ * */
 #if defined(USBUSART1_ISR)
 void USBUSART1_ISR(void)
 {
+	/* 没有定义这个宏 */
 #if defined(USBUSART1_DMA_RXTX_IRQ)
 	aux_serial_receive_isr(USBUSART1, USBUSART1_DMA_RXTX_IRQ);
 #else

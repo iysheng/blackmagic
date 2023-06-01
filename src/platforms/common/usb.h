@@ -31,6 +31,7 @@ extern uint16_t usb_config;
 #define CDCACM_PACKET_SIZE  512U
 #define TRACE_ENDPOINT_SIZE 512U
 #else
+/* 针对 native 版本没有定义 USB_HS,只会走到这里 */
 #define CDCACM_PACKET_SIZE  64U
 #define TRACE_ENDPOINT_SIZE 64U
 #endif
@@ -39,6 +40,7 @@ extern uint16_t usb_config;
 #define USB_MAX_INTERVAL 255U
 #endif
 
+/* 这些是 ENDPOINT 编号是随意指定的么?? */
 #define CDCACM_GDB_ENDPOINT  1U
 #define CDCACM_UART_ENDPOINT 3U
 #define TRACE_ENDPOINT       5U

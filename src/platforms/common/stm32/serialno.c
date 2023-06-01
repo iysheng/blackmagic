@@ -22,8 +22,10 @@
 
 char serial_no[DFU_SERIAL_LENGTH];
 
+/* 读取设备唯一的序列号 */
 void read_serial_number(void)
 {
+	/* native 走的这里 */
 #if DFU_SERIAL_LENGTH == 9
 	const volatile uint32_t *const unique_id_p = (uint32_t *)DESIG_UNIQUE_ID_BASE;
 	const uint32_t unique_id = unique_id_p[0] + unique_id_p[1] + unique_id_p[2];

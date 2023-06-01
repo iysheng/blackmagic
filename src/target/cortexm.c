@@ -471,6 +471,9 @@ static void cortexm_cache_clean(target_s *t, target_addr_t addr, size_t len, boo
 	}
 }
 
+/*
+ * cortexm_mem_read 内存读取接口函数
+ * */
 static void cortexm_mem_read(target_s *t, void *dest, target_addr_t src, size_t len)
 {
 	cortexm_cache_clean(t, src, len, false);
@@ -558,6 +561,7 @@ const char *cortexm_regs_description(target_s *t)
 
 bool cortexm_probe(adiv5_access_port_s *ap)
 {
+	/* 创建一个 target_s */
 	target_s *t = target_new();
 	if (!t)
 		return false;

@@ -27,22 +27,34 @@
 #include "usb_dfu_stub.h"
 #include "serialno.h"
 
+/* 这个是传进去的 usb 设备结构体指针 */
 usbd_device *usbdev = NULL;
 uint16_t usb_config;
 
 /* We need a special large control buffer for this device: */
+/* 大的控制缓冲区 */
 static uint8_t usbd_control_buffer[256];
 
+/*
+ * usb 接口初始化,这里很关键
+ * */
 void blackmagic_usb_init(void)
 {
 	read_serial_number();
 
+	/* 初始化这个 usbd 设备 */
 	usbdev = usbd_init(&USB_DRIVER, &dev_desc, &config, usb_strings, sizeof(usb_strings) / sizeof(char *),
 		usbd_control_buffer, sizeof(usbd_control_buffer));
 
+	/*
+	 * 注册两个 config 的回调函数
+	 * */
 	usbd_register_set_config_callback(usbdev, usb_serial_set_config);
 	usbd_register_set_config_callback(usbdev, dfu_set_config);
 
+	/*
+	 * 设置 usb 中断的优先级
+	 * */
 	nvic_set_priority(USB_IRQ, IRQ_PRI_USB);
 	nvic_enable_irq(USB_IRQ);
 }
@@ -52,6 +64,10 @@ uint16_t usb_get_config(void)
 	return usb_config;
 }
 
+/* USB 中断处理函数
+ * 针对 native 平台宏展开后是函数 usb_lp_can_rx0_isr
+ * 这个中断函数在 libopencm3 中定义
+ * */
 void USB_ISR(void)
 {
 	usbd_poll(usbdev);

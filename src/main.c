@@ -40,9 +40,11 @@ char *gdb_packet_buffer()
 	return pbuf;
 }
 
+/* bmp 核心轮询函数 */
 static void bmp_poll_loop(void)
 {
 	SET_IDLE_STATE(false);
+	/* 如果待调试的 target 正在运行 */
 	while (gdb_target_running && cur_target) {
 		gdb_poll_target();
 
@@ -61,6 +63,7 @@ static void bmp_poll_loop(void)
 	}
 
 	SET_IDLE_STATE(true);
+	/* 获取 gdb 命令字 */
 	size_t size = gdb_getpacket(pbuf, GDB_PACKET_BUFFER_SIZE);
 	// If port closed and target detached, stay idle
 	if (pbuf[0] != '\x04' || cur_target)
@@ -75,12 +78,14 @@ int main(int argc, char **argv)
 #else
 	(void)argc;
 	(void)argv;
+/* 平台初始化 */
 	platform_init();
 #endif
 
 	while (true) {
 		volatile exception_s e;
 		TRY_CATCH (e, EXCEPTION_ALL) {
+			/* 主循环中去轮询 gdb 接口数据 */
 			bmp_poll_loop();
 		}
 		if (e.type) {

@@ -35,7 +35,8 @@
 extern bool debug_bmp;
 #endif
 
-#define PLATFORM_IDENT   ""
+/* 起调试器的别名 */
+#define PLATFORM_IDENT   "RED"
 #define UPD_IFACE_STRING "@Internal Flash   /0x08000000/8*001Kg"
 
 /*
@@ -230,6 +231,7 @@ extern bool debug_bmp;
 		gpio_set(USBUSART_PORT, USBUSART_RX_PIN);                                                               \
 	} while (0)
 
+/* native 平台的驱动句柄 */
 #define USB_DRIVER st_usbfs_v1_usb_driver
 #define USB_IRQ    NVIC_USB_LP_CAN_RX0_IRQ
 #define USB_ISR(x) usb_lp_can_rx0_isr(x)

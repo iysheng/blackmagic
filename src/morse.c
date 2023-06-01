@@ -70,6 +70,7 @@ void morse(const char *const msg, const bool repeat)
 #endif
 }
 
+/* morse 是什么,莫尔斯电码 */
 bool morse_update(void)
 {
 	static uint16_t code;

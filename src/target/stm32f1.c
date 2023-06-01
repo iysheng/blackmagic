@@ -42,9 +42,11 @@
 #include "cortexm.h"
 
 static bool stm32f1_cmd_option(target_s *target, int argc, const char **argv);
+static bool stm32f1_cmd_mdw(target_s *target, int argc, const char **argv);
 
 const command_s stm32f1_cmd_list[] = {
 	{"option", stm32f1_cmd_option, "Manipulate option bytes"},
+	{"mdw", stm32f1_cmd_mdw, "Memory display words"},
 	{NULL, NULL, NULL},
 };
 
@@ -161,6 +163,7 @@ bool gd32f1_probe(target_s *target)
 
 	target->part_id = device_id;
 	target->mass_erase = stm32f1_mass_erase;
+	/* 添加内存和 flash 区域,超过这个区域范围的数据无法直接使用 x 函数打印出来 */
 	target_add_ram(target, 0x20000000, ram_size * 1024U);
 	stm32f1_add_flash(target, 0x8000000, (size_t)flash_size * 1024U, 0x400);
 	target_add_commands(target, stm32f1_cmd_list, target->driver);
@@ -793,6 +796,43 @@ static bool stm32f1_cmd_option(target_s *target, int argc, const char **argv)
 		const uint32_t val = target_mem_read32(target, addr);
 		tc_printf(target, "0x%08X: 0x%04X\n", addr, val & 0xffffU);
 		tc_printf(target, "0x%08X: 0x%04X\n", addr + 2U, val >> 16U);
+	}
+
+	return true;
+}
+
+static bool stm32f1_cmd_mdw(target_s *target, int argc, const char **argv)
+{
+	uint32_t addr = 0;
+	uint32_t counts = 1;
+	uint32_t val = 0;
+
+	if (argc == 2) {
+		/* If 2 arguments are given, assume the second is an address */
+		sscanf(argv[1], "0x%x", (unsigned int *)&addr);
+	}
+	else if (argc == 3) {
+		/* If 3 arguments are given, assume the second is an address, and the third a counts */
+		sscanf(argv[1], "0x%x", (unsigned int *)&addr);
+		sscanf(argv[2], "%u", (unsigned int *)&counts);
+	}
+	else
+	{
+		tc_printf(target, "usage: monitor mdw \nusage: monitor mdw <addr> [counts: default=1]\n");
+		return false;
+	}
+
+	if (addr & 0X03)
+	{
+		tc_printf(target, "addr should align with 4\n");
+		return false;
+	}
+
+	/* When all gets said and done, display the words value */
+	for (uint32_t i = 0U; i < counts; i += 1U) {
+		val = target_mem_read32(target, addr);
+		tc_printf(target, "0x%08x: 0x%08x\n", addr, val);
+		addr += 4;
 	}
 
 	return true;

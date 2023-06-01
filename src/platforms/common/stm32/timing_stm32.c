@@ -29,6 +29,7 @@ uint32_t swd_delay_cnt = 0;
 
 static size_t morse_tick = 0;
 
+/* systick 初始化,设置为 100Hz */
 void platform_timing_init(void)
 {
 	/* Setup heartbeat timer */
@@ -49,10 +50,14 @@ void platform_delay(uint32_t ms)
 		continue;
 }
 
+/*
+ * sys tick 中断处理函数
+ * */
 void sys_tick_handler(void)
 {
 	time_ms += SYSTICKMS;
 
+	/* 如果超过 1s */
 	if (morse_tick >= MORSECNT) {
 		if (running_status)
 			gpio_toggle(LED_PORT, LED_IDLE_RUN);

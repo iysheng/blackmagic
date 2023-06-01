@@ -18,6 +18,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
+# 将当前目录加进来, 这个目录是 platform 通用文件的目录
 VPATH += platforms/common
 CFLAGS += -Iplatforms/common
 

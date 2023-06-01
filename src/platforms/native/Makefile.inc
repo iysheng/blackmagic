@@ -1,15 +1,19 @@
+# native 版本 Makefile 相关头文件
 CROSS_COMPILE ?= arm-none-eabi-
 CC = $(CROSS_COMPILE)gcc
 OBJCOPY = $(CROSS_COMPILE)objcopy
 
+# native 平台的 CFLAGS 变量
 CFLAGS += -Istm32/include -mcpu=cortex-m3 -mthumb \
 	-DSTM32F1 -DBLACKMAGIC -I../libopencm3/include \
 	-Iplatforms/common/stm32 -DDFU_SERIAL_LENGTH=9
 
+# dfu 固件需要的编译选项,即 boot 固件
 LDFLAGS_BOOT := $(LDFLAGS) --specs=nano.specs -lopencm3_stm32f1 \
 	-Wl,-T,platforms/native/native.ld -nostartfiles -lc \
 	-Wl,-Map=mapfile -mthumb -mcpu=cortex-m3 -Wl,-gc-sections \
 	-L../libopencm3/lib
+# 固件的 text 入口在 0x8002000 位置,给 boot 保留了 8KB 的空间
 LDFLAGS = $(LDFLAGS_BOOT) -Wl,-Ttext=0x8002000
 
 ifeq ($(ENABLE_DEBUG), 1)
@@ -18,8 +22,10 @@ else
 LDFLAGS += --specs=nosys.specs
 endif
 
+# 继续修改 VPATH
 VPATH += platforms/common/stm32
 
+# native 相关的文件
 SRC +=               \
 	platform.c \
 	traceswodecode.c \

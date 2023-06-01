@@ -364,6 +364,7 @@ static const usb_iface_assoc_descriptor_s trace_assoc = {
 static const usb_interface_s ifaces[] = {
 	{
 		.num_altsetting = 1,
+		/* 关联 gdb */
 		.iface_assoc = &gdb_assoc,
 		.altsetting = &gdb_comm_iface,
 	},
@@ -373,6 +374,7 @@ static const usb_interface_s ifaces[] = {
 	},
 	{
 		.num_altsetting = 1,
+		/* 关联串口 */
 		.iface_assoc = &uart_assoc,
 		.altsetting = &uart_comm_iface,
 	},
@@ -382,12 +384,14 @@ static const usb_interface_s ifaces[] = {
 	},
 	{
 		.num_altsetting = 1,
+		/* 关联 dfu 升级 */
 		.iface_assoc = &dfu_assoc,
 		.altsetting = &dfu_iface,
 	},
 #if defined(PLATFORM_HAS_TRACESWO)
 	{
 		.num_altsetting = 1,
+		/* 根据需要关联 traceswo 升级 */
 		.iface_assoc = &trace_assoc,
 		.altsetting = &trace_iface,
 	},

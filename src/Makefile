@@ -1,21 +1,30 @@
+# 默认编译 native 版本的固件,即 blackmagic 官方的硬件固件
 PROBE_HOST ?= native
+# 平台对应的目录 platforms/native
 PLATFORM_DIR = platforms/$(PROBE_HOST)
+# 将平台有关的目录和 target 目录添加到 VPATH
+# VPATH 会修改依赖的搜索路径
 VPATH += $(PLATFORM_DIR) target
+# 默认未开启 DEBUG
 ENABLE_DEBUG ?=
 
+# 打印工具链的前缀
 SYS = $(shell $(CC) -dumpmachine)
 
+# 如果没有开启详细信息 V=1,那么默认是静默编译
 ifneq ($(V), 1)
 MAKEFLAGS += --no-print-dir
 Q := @
 endif
 
+# 设置 CFLAGS
 CFLAGS += -Wall -Wextra -Werror -Wreturn-type \
 	-Wno-char-subscripts \
 	-std=c11 -g3 -MD -I./target \
 	-Os \
 	-I. -Iinclude -I$(PLATFORM_DIR)
 
+# 如果是 mac 版本
 ifeq (filter, macosx darwin, $(SYS))
 CFLAGS += -Wmaybe-uninitialized -Wstringop-overflow -Wunsafe-loop-optimizations
 endif
@@ -24,6 +33,7 @@ ifeq ($(ENABLE_DEBUG), 1)
 CFLAGS += -DENABLE_DEBUG
 endif
 
+# src 目录的依赖文件
 SRC =              \
 	adiv5.c        \
 	adiv5_jtagdp.c \
@@ -76,6 +86,7 @@ SRC =              \
 	target_flash.c \
 	target_probe.c
 
+# 如果不是编译 all_platforms 版本,那么添加平台相关的 Makefile 头文件
 ifeq (,$(filter all_platforms,$(MAKECMDGOALS)))
 include $(PLATFORM_DIR)/Makefile.inc
 endif
@@ -85,6 +96,7 @@ ifneq ($(PC_HOSTED),1)
 LDFLAGS += -Wl,--print-memory-usage
 endif
 
+# 优化选项
 OPT_FLAGS ?= -Os
 CFLAGS += $(OPT_FLAGS)
 LDFLAGS += $(OPT_FLAGS)
@@ -93,6 +105,7 @@ ifndef TARGET
 ifdef PC_HOSTED
 TARGET = blackmagic
 else
+# 默认的 TARGET 是 blackmagic.elf
 TARGET = blackmagic.elf
 endif
 endif
@@ -104,20 +117,26 @@ endif
 ifdef PC_HOSTED
 CFLAGS += -DPC_HOSTED=1
 else
+# 没有定义 PC HOST, 将平台通用的 Makefile.inc 头文件加进来
 CFLAGS += -DPC_HOSTED=0
 include platforms/common/Makefile.inc
 endif
 
+# 如果使能了 RTT (Real-Time Transfer) 是 segger 推出的一种发送消息到上位机的机制
 ifeq ($(ENABLE_RTT), 1)
 CFLAGS += -DENABLE_RTT
 SRC += rtt.c rtt_if.c
 endif
 
+# 如果使能了 RTT_IDENT 
 ifdef RTT_IDENT
 CFLAGS += -DRTT_IDENT=$(RTT_IDENT)
 endif
 
+# 将所有的 .c 和 .S 文件替换为 .o 文件
 OBJ = $(patsubst %.S,%.o,$(patsubst %.c,%.o,$(SRC)))
+
+$(shell echo $(SRC) > /tmp/black.txt)
 
 $(TARGET): include/version.h $(OBJ)
 	@echo "  LD      $@"

@@ -90,6 +90,9 @@ static uint8_t debug_serial_debug_write_index;
 static uint8_t debug_serial_debug_read_index;
 #endif
 
+/*
+ * gdb 接口的回调
+ * */
 static usbd_request_return_codes_e gdb_serial_control_request(usbd_device *dev, usb_setup_data_s *req, uint8_t **buf,
 	uint16_t *const len, void (**complete)(usbd_device *dev, usb_setup_data_s *req))
 {
@@ -129,6 +132,9 @@ bool gdb_serial_get_dtr(void)
 	return gdb_serial_dtr;
 }
 
+/*
+ * 调试串口的回调
+ * */
 static usbd_request_return_codes_e debug_serial_control_request(usbd_device *dev, usb_setup_data_s *req, uint8_t **buf,
 	uint16_t *const len, void (**complete)(usbd_device *dev, usb_setup_data_s *req))
 {
@@ -177,6 +183,9 @@ void usb_serial_set_state(usbd_device *const dev, const uint16_t iface, const ui
 	usbd_ep_write_packet(dev, ep, buf, sizeof(buf));
 }
 
+/*
+ * 串口 config 的回调函数
+ * */
 void usb_serial_set_config(usbd_device *dev, uint16_t value)
 {
 	usb_config = value;
@@ -185,12 +194,14 @@ void usb_serial_set_config(usbd_device *dev, uint16_t value)
 #if defined(STM32F4) || defined(LM4F) || defined(STM32F7)
 	usbd_ep_setup(dev, CDCACM_GDB_ENDPOINT, USB_ENDPOINT_ATTR_BULK, CDCACM_PACKET_SIZE, gdb_usb_out_cb);
 #else
+	/* 为什么这里没有 gdb 的回调接口呢??? */
 	usbd_ep_setup(dev, CDCACM_GDB_ENDPOINT, USB_ENDPOINT_ATTR_BULK, CDCACM_PACKET_SIZE, NULL);
 #endif
 	usbd_ep_setup(dev, CDCACM_GDB_ENDPOINT | USB_REQ_TYPE_IN, USB_ENDPOINT_ATTR_BULK, CDCACM_PACKET_SIZE, NULL);
 	usbd_ep_setup(dev, (CDCACM_GDB_ENDPOINT + 1U) | USB_REQ_TYPE_IN, USB_ENDPOINT_ATTR_INTERRUPT, 16, NULL);
 
 	/* Serial interface */
+	/* 调试串口接收的回调函数 */
 	usbd_ep_setup(
 		dev, CDCACM_UART_ENDPOINT, USB_ENDPOINT_ATTR_BULK, CDCACM_PACKET_SIZE / 2U, debug_serial_receive_callback);
 	usbd_ep_setup(dev, CDCACM_UART_ENDPOINT | USB_REQ_TYPE_IN, USB_ENDPOINT_ATTR_BULK, CDCACM_PACKET_SIZE,
@@ -202,6 +213,7 @@ void usb_serial_set_config(usbd_device *dev, uint16_t value)
 	usbd_ep_setup(dev, TRACE_ENDPOINT | USB_REQ_TYPE_IN, USB_ENDPOINT_ATTR_BULK, TRACE_ENDPOINT_SIZE, trace_buf_drain);
 #endif
 
+	/* 在这里又注册了回调,这个好像是控制线的回调,就是发送一些控制命令 */
 	usbd_register_control_callback(dev, USB_REQ_TYPE_CLASS | USB_REQ_TYPE_INTERFACE,
 		USB_REQ_TYPE_TYPE | USB_REQ_TYPE_RECIPIENT, debug_serial_control_request);
 	usbd_register_control_callback(dev, USB_REQ_TYPE_CLASS | USB_REQ_TYPE_INTERFACE,
@@ -294,6 +306,7 @@ void debug_serial_run(void)
 
 	/* Try to send a packet if usb is idle */
 	if (debug_serial_send_complete)
+		/* 将串口接收到的数据通过 USB 转发出去 */
 		debug_serial_send_data();
 
 	nvic_enable_irq(USB_IRQ);
@@ -329,6 +342,7 @@ static void debug_serial_receive_callback(usbd_device *dev, uint8_t ep)
 		return;
 #endif
 
+	/* 将接收到的数据发送出去 */
 	aux_serial_send(len);
 
 #if defined(STM32F0) || defined(STM32F1) || defined(STM32F3) || defined(STM32F4) || defined(STM32F7)
