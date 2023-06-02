@@ -94,14 +94,18 @@ static void aux_serial_set_baudrate(const uint32_t baud_rate)
 }
 
 #if defined(STM32F0) || defined(STM32F1) || defined(STM32F3) || defined(STM32F4) || defined(STM32F7)
+/* 串口初始化 */
 void aux_serial_init(void)
 {
 	/* Enable clocks */
+	/* 使能 UART 和对应的 DMA 通道 */
 	rcc_periph_clock_enable(USBUSART_CLK);
 	rcc_periph_clock_enable(USBUSART_DMA_CLK);
 
 	/* Setup UART parameters */
+	/* 设置串口管脚参数 */
 	UART_PIN_SETUP();
+	/* 设置串口波特率 */
 	aux_serial_set_baudrate(38400);
 	usart_set_databits(USBUSART, 8);
 	usart_set_stopbits(USBUSART, USART_STOPBITS_1);
@@ -121,6 +125,7 @@ void aux_serial_init(void)
 #elif !defined(USBUSART_RDR)
 #define USBUSART_RDR USART_DR(USBUSART)
 #endif
+	/* 配置 DMA */
 	dma_channel_reset(USBUSART_DMA_BUS, USBUSART_DMA_TX_CHAN);
 	dma_set_peripheral_address(USBUSART_DMA_BUS, USBUSART_DMA_TX_CHAN, (uintptr_t)&USBUSART_TDR);
 	dma_enable_memory_increment_mode(USBUSART_DMA_BUS, USBUSART_DMA_TX_CHAN);
@@ -134,10 +139,14 @@ void aux_serial_init(void)
 	dma_set_dma_flow_control(USBUSART_DMA_BUS, USBUSART_DMA_TX_CHAN);
 	dma_enable_direct_mode(USBUSART_DMA_BUS, USBUSART_DMA_TX_CHAN);
 #else
+	/* 方向是从内存到外设
+	 * 是将数据缓冲区的内容通过串口外设发送出去
+	 * */
 	dma_set_read_from_memory(USBUSART_DMA_BUS, USBUSART_DMA_TX_CHAN);
 #endif
 
 	/* Setup USART RX DMA */
+	/* 设置串口接收的 DMA */
 	dma_channel_reset(USBUSART_DMA_BUS, USBUSART_DMA_RX_CHAN);
 	dma_set_peripheral_address(USBUSART_DMA_BUS, USBUSART_DMA_RX_CHAN, (uintptr_t)&USBUSART_RDR);
 	dma_set_memory_address(USBUSART_DMA_BUS, USBUSART_DMA_RX_CHAN, (uintptr_t)aux_serial_receive_buffer);
@@ -171,6 +180,7 @@ void aux_serial_init(void)
 #if defined(USBUSART_DMA_RXTX_IRQ)
 	nvic_enable_irq(USBUSART_DMA_RXTX_IRQ);
 #else
+	/* 走的这里,分别设置串口 DMA 发送和接收中断 */
 	nvic_enable_irq(USBUSART_DMA_TX_IRQ);
 	nvic_enable_irq(USBUSART_DMA_RX_IRQ);
 #endif
@@ -224,6 +234,7 @@ void aux_serial_set_encoding(const usb_cdc_line_coding_s *const coding)
 	/* Some devices require that the usart is disabled before
 	 * changing the usart registers. */
 	usart_disable(USBUSART);
+	/* 设置波特率 */
 	aux_serial_set_baudrate(coding->dwDTERate);
 
 #if defined(STM32F0) || defined(STM32F1) || defined(STM32F3) || defined(STM32F4) || defined(STM32F7)
@@ -403,6 +414,9 @@ static void aux_serial_receive_isr(const uint32_t usart, const uint8_t dma_irq)
 	nvic_enable_irq(dma_irq);
 }
 
+/*
+ * DMA 有关串口发送中断入口函数
+ * */
 static void aux_serial_dma_transmit_isr(const uint8_t dma_tx_channel)
 {
 	nvic_disable_irq(USB_IRQ);
@@ -426,6 +440,9 @@ static void aux_serial_dma_transmit_isr(const uint8_t dma_tx_channel)
 	nvic_enable_irq(USB_IRQ);
 }
 
+/*
+ * DMA 有关串口接收中断入口函数
+ * */
 static void aux_serial_dma_receive_isr(const uint8_t usart_irq, const uint8_t dma_rx_channel)
 {
 	nvic_disable_irq(usart_irq);
@@ -547,11 +564,14 @@ void aux_serial_send(const size_t len)
  * Allowed to read from FIFO out pointer, but not write to it.
  * Allowed to write to FIFO in pointer.
  */
+/* native 走的这里 */
 void USBUART_ISR(void)
 {
 	bool flush = uart_is_interrupt_source(USBUART, UART_INT_RT);
 
+	/* 如果有接收到数据 */
 	while (!uart_is_rx_fifo_empty(USBUART)) {
+		/* 从串口逐个读取数据 */
 		const char c = uart_recv(USBUART);
 
 		/* If the next increment of rx_in would put it at the same point
@@ -559,15 +579,18 @@ void USBUART_ISR(void)
 		*/
 		if (((aux_serial_receive_write_index + 1U) % AUX_UART_BUFFER_SIZE) != aux_serial_receive_read_index) {
 			/* insert into FIFO */
+			/* 将数据填充到 FIFO */
 			aux_serial_receive_buffer[aux_serial_receive_write_index++] = c;
 
 			/* wrap out pointer */
 			if (aux_serial_receive_write_index >= AUX_UART_BUFFER_SIZE)
 				aux_serial_receive_write_index = 0;
 		} else
+			/* 如果串口缓冲区已经满了,标记这个 flush 为真 */
 			flush = true;
 	}
 
+	/* 如果串口缓冲区已经满了,需要 flush 操作 */
 	if (flush) {
 		/* forcibly empty fifo if no USB endpoint */
 		if (usb_get_config() != 1) {

@@ -242,6 +242,7 @@ void platform_init(void)
 	SCB_VTOR = (uint32_t)&vector_table; // NOLINT(clang-diagnostic-pointer-to-int-cast)
 
 	platform_timing_init();
+	/* usb 初始化 */
 	blackmagic_usb_init();
 
 	/*
@@ -377,6 +378,7 @@ void platform_target_clk_output_enable(bool enable)
 	}
 }
 
+/* 检测到 VBUS 会进入到这个中断入口函数 */
 void exti15_10_isr(void)
 {
 	uint32_t usb_vbus_port;
@@ -392,14 +394,19 @@ void exti15_10_isr(void)
 
 	if (gpio_get(usb_vbus_port, usb_vbus_pin))
 		/* Drive pull-up high if VBUS connected */
+		/* 拉高 PA8, 触发 PC 识别这个设备??? */
 		gpio_set_mode(USB_PU_PORT, GPIO_MODE_OUTPUT_10_MHZ, GPIO_CNF_OUTPUT_PUSHPULL, USB_PU_PIN);
 	else
 		/* Allow pull-up to float if VBUS disconnected */
+		/* 使 PA8 悬空 */
 		gpio_set_mode(USB_PU_PORT, GPIO_MODE_INPUT, GPIO_CNF_INPUT_FLOAT, USB_PU_PIN);
 
 	exti_reset_request(usb_vbus_pin);
 }
 
+/*
+ * 建立检测 VBUS 管脚的中断
+ * */
 static void setup_vbus_irq(void)
 {
 	uint32_t usb_vbus_port;

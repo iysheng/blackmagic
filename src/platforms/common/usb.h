@@ -40,7 +40,11 @@ extern uint16_t usb_config;
 #define USB_MAX_INTERVAL 255U
 #endif
 
-/* 这些是 ENDPOINT 编号是随意指定的么?? */
+/* 这些是 ENDPOINT 编号不是随意指定的和下面的
+ * CDCACM_GDB_ENDPOINT 对应的是 gdb_data_endp 的地址, bEndpointAddress
+ * UART_IF_NO + 1 对应的是 uart_data_endp 的地址, bEndpointAddress
+ * TRACE_IF_NO 有关系
+ * */
 #define CDCACM_GDB_ENDPOINT  1U
 #define CDCACM_UART_ENDPOINT 3U
 #define TRACE_ENDPOINT       5U
@@ -48,6 +52,7 @@ extern uint16_t usb_config;
 #define GDB_IF_NO  0U
 #define UART_IF_NO 2U
 #define DFU_IF_NO  4U
+/* native 平台开启了这个宏,所以总的 interface 数量是 6 */
 #ifdef PLATFORM_HAS_TRACESWO
 #define TRACE_IF_NO      5U
 #define TOTAL_INTERFACES 6U

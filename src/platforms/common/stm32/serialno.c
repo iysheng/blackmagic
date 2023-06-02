@@ -20,6 +20,7 @@
 #include "general.h"
 #include <libopencm3/stm32/desig.h>
 
+/* 保存序列号的数组 */
 char serial_no[DFU_SERIAL_LENGTH];
 
 /* 读取设备唯一的序列号 */

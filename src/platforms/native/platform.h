@@ -36,7 +36,7 @@ extern bool debug_bmp;
 #endif
 
 /* 起调试器的别名 */
-#define PLATFORM_IDENT   "RED"
+#define PLATFORM_IDENT   "(RED)"
 #define UPD_IFACE_STRING "@Internal Flash   /0x08000000/8*001Kg"
 
 /*
@@ -45,6 +45,7 @@ extern bool debug_bmp;
  */
 #define HW_SWITCH(ver, opt1, opt2) (platform_hwversion() < (ver) ? (opt1) : (opt2))
 
+/* 重要的管脚定义 */
 /*
  * Important pin mappings for native implementation:
  *
@@ -264,9 +265,15 @@ extern bool debug_bmp;
 #define USBUSART1_ISR(x)        usart1_isr(x)
 #define USBUSART1_DMA_TX_CHAN   DMA_CHANNEL4
 #define USBUSART1_DMA_TX_IRQ    NVIC_DMA1_CHANNEL4_IRQ
+/*
+ * 串口发送 DMA 的中断是, dma1_channel4_isr
+ * */
 #define USBUSART1_DMA_TX_ISR(x) dma1_channel4_isr(x)
 #define USBUSART1_DMA_RX_CHAN   DMA_CHANNEL5
 #define USBUSART1_DMA_RX_IRQ    NVIC_DMA1_CHANNEL5_IRQ
+/*
+ * 串口发送 DMA 的中断是, dma1_channel5_isr
+ * */
 #define USBUSART1_DMA_RX_ISR(x) dma1_channel5_isr(x)
 
 #define USBUSART2               USART2

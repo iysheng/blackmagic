@@ -99,6 +99,7 @@ static usbd_request_return_codes_e gdb_serial_control_request(usbd_device *dev, 
 	(void)buf;
 	(void)complete;
 	/* Is the request for the GDB UART interface? */
+	/* 检查这个 req 的 endpoint 接口号是否是 GDB 控制接口的地址,如果不是直接返回 */
 	if (req->wIndex != GDB_IF_NO)
 		return USBD_REQ_NEXT_CALLBACK;
 
@@ -140,6 +141,7 @@ static usbd_request_return_codes_e debug_serial_control_request(usbd_device *dev
 {
 	(void)complete;
 	/* Is the request for the physical/debug UART interface? */
+	/* 检查是否是调试串口的命令 endpoint, 如果不是则跳过 */
 	if (req->wIndex != UART_IF_NO)
 		return USBD_REQ_NEXT_CALLBACK;
 
@@ -194,26 +196,45 @@ void usb_serial_set_config(usbd_device *dev, uint16_t value)
 #if defined(STM32F4) || defined(LM4F) || defined(STM32F7)
 	usbd_ep_setup(dev, CDCACM_GDB_ENDPOINT, USB_ENDPOINT_ATTR_BULK, CDCACM_PACKET_SIZE, gdb_usb_out_cb);
 #else
-	/* 为什么这里没有 gdb 的回调接口呢??? */
+	/*
+	 * 设置了 gdb_data OUT
+	 * */
 	usbd_ep_setup(dev, CDCACM_GDB_ENDPOINT, USB_ENDPOINT_ATTR_BULK, CDCACM_PACKET_SIZE, NULL);
 #endif
+	/*
+	 * 设置了 gdb_data IN
+	 * */
 	usbd_ep_setup(dev, CDCACM_GDB_ENDPOINT | USB_REQ_TYPE_IN, USB_ENDPOINT_ATTR_BULK, CDCACM_PACKET_SIZE, NULL);
+	/*
+	 * 设置了 gdb_comm IN, 这个是中断传输
+	 * */
 	usbd_ep_setup(dev, (CDCACM_GDB_ENDPOINT + 1U) | USB_REQ_TYPE_IN, USB_ENDPOINT_ATTR_INTERRUPT, 16, NULL);
 
 	/* Serial interface */
 	/* 调试串口接收的回调函数 */
+	/*
+	 * serial_data OUT 方向, 从 DEVICE 发往 HOST 方向
+	 * */
 	usbd_ep_setup(
 		dev, CDCACM_UART_ENDPOINT, USB_ENDPOINT_ATTR_BULK, CDCACM_PACKET_SIZE / 2U, debug_serial_receive_callback);
+	/*
+	 * serial_data IN 方向, 即从 HOST 发往 DEVICE 的数据
+	 * */
 	usbd_ep_setup(dev, CDCACM_UART_ENDPOINT | USB_REQ_TYPE_IN, USB_ENDPOINT_ATTR_BULK, CDCACM_PACKET_SIZE,
 		debug_serial_send_callback);
-	usbd_ep_setup(dev, (CDCACM_UART_ENDPOINT + 1U) | USB_REQ_TYPE_IN, USB_ENDPOINT_ATTR_INTERRUPT, 16, NULL);
+	/*
+	 * serial_comm IN 方向
+	 * */
+	usbd_ep_setup(dev, (CDCACM_UART_ENDPOINT + 1U) | USB_REQ_TYPE_IN, USB_ENDPOINT_ATTR_INTERRUPT /* 这种难道是表示的是控制传输 */, 16, NULL);
 
 #ifdef PLATFORM_HAS_TRACESWO
 	/* Trace interface */
 	usbd_ep_setup(dev, TRACE_ENDPOINT | USB_REQ_TYPE_IN, USB_ENDPOINT_ATTR_BULK, TRACE_ENDPOINT_SIZE, trace_buf_drain);
 #endif
 
-	/* 在这里又注册了回调,这个好像是控制线的回调,就是发送一些控制命令 */
+	/* 在这里又注册了回调,这个好像是控制线的回调,就是发送一些控制命令
+	 * 这个走的控制传输 ????
+	 * */
 	usbd_register_control_callback(dev, USB_REQ_TYPE_CLASS | USB_REQ_TYPE_INTERFACE,
 		USB_REQ_TYPE_TYPE | USB_REQ_TYPE_RECIPIENT, debug_serial_control_request);
 	usbd_register_control_callback(dev, USB_REQ_TYPE_CLASS | USB_REQ_TYPE_INTERFACE,
@@ -222,6 +243,9 @@ void usb_serial_set_config(usbd_device *dev, uint16_t value)
 	/* Notify the host that DCD is asserted.
 	 * Allows the use of /dev/tty* devices on *BSD/MacOS
 	 */
+	/*
+	 * 将 interface 和 endpoint 激活绑定???
+	 * */
 	usb_serial_set_state(dev, GDB_IF_NO, CDCACM_GDB_ENDPOINT);
 	usb_serial_set_state(dev, UART_IF_NO, CDCACM_UART_ENDPOINT);
 

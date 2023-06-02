@@ -40,6 +40,7 @@ static uint8_t usbd_control_buffer[256];
  * */
 void blackmagic_usb_init(void)
 {
+	/* 更新序列号 */
 	read_serial_number();
 
 	/* 初始化这个 usbd 设备 */
