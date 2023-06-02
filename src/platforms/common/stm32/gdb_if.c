@@ -84,6 +84,7 @@ static void gdb_if_update_buf(void)
 	while (usb_get_config() != 1)
 		continue;
 #if !defined(STM32F4) && !defined(STM32F7)
+	/* 直接从 gdb_data 这个 ep 读取数据 */
 	count_out = usbd_ep_read_packet(usbdev, CDCACM_GDB_ENDPOINT, buffer_out, CDCACM_PACKET_SIZE);
 	out_ptr = 0;
 #else
@@ -101,8 +102,12 @@ static void gdb_if_update_buf(void)
 		__WFI();
 }
 
+/*
+ * 从 gdb 接口读取字符
+ * */
 char gdb_if_getchar(void)
 {
+	/* 如果已经将缓冲区中的数据都读出来了 */
 	while (out_ptr >= count_out) {
 		/*
 		 * Detach if port closed
@@ -115,9 +120,11 @@ char gdb_if_getchar(void)
 			return '\x04';
 		}
 
+		/* 尝试更新缓冲区 */
 		gdb_if_update_buf();
 	}
 
+	/* 直接返回缓冲区中的数据 */
 	return buffer_out[out_ptr++];
 }
 

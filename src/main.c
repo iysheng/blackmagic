@@ -33,6 +33,7 @@
 #endif
 
 /* This has to be aligned so the remote protocol can re-use it without causing Problems */
+/* 必须要保持字节对齐 */
 static char pbuf[GDB_PACKET_BUFFER_SIZE + 1U] __attribute__((aligned(8)));
 
 char *gdb_packet_buffer()

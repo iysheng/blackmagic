@@ -477,6 +477,7 @@ static void cortexm_cache_clean(target_s *t, target_addr_t addr, size_t len, boo
 static void cortexm_mem_read(target_s *t, void *dest, target_addr_t src, size_t len)
 {
 	cortexm_cache_clean(t, src, len, false);
+	/* 还是依靠 ap 去读写的内存 */
 	adiv5_mem_read(cortexm_ap(t), dest, src, len);
 }
 
@@ -506,6 +507,7 @@ static void cortexm_read_cpuid(target_s *const t, const adiv5_access_port_s *con
 	 * that is, the actual values are found in the Technical Reference Manual
 	 * for each Cortex-M core.
 	 */
+	/* 读取 cpuid */
 	t->cpuid = target_mem_read32(t, CORTEXM_CPUID);
 	const uint16_t cpuid_partno = t->cpuid & CPUID_PARTNO_MASK;
 	switch (cpuid_partno) {
@@ -519,6 +521,7 @@ static void cortexm_read_cpuid(target_s *const t, const adiv5_access_port_s *con
 		t->core = "M23";
 		break;
 	case CORTEX_M3:
+		/* 填充这个 core 字符串 */
 		t->core = "M3";
 		break;
 	case CORTEX_M4:
@@ -559,14 +562,19 @@ const char *cortexm_regs_description(target_s *t)
 	return description;
 }
 
+/*
+ * cortexm 结构的 probe 函数
+ * 完成芯片的探测
+ * */
 bool cortexm_probe(adiv5_access_port_s *ap)
 {
-	/* 创建一个 target_s */
+	/* 创建一个 target_s, 同时就会将这个 target 添加到维护的链表中 */
 	target_s *t = target_new();
 	if (!t)
 		return false;
 
 	adiv5_ap_ref(ap);
+	/* 感觉应该是走这里,获取 designer_code  */
 	if (ap->dp->version >= 2 && ap->dp->target_designer_code != 0) {
 		/* Use TARGETID register to identify target */
 		t->designer_code = ap->dp->target_designer_code;
@@ -582,6 +590,7 @@ bool cortexm_probe(adiv5_access_port_s *ap)
 		ap->dp->designer_code == JEP106_MANUFACTURER_ARM_CHINA)
 		t->designer_code = JEP106_MANUFACTURER_ARM_CHINA;
 
+	/* 申请 cortexm 的私有空间 */
 	cortexm_priv_s *priv = calloc(1, sizeof(*priv));
 	if (!priv) { /* calloc failed: heap exhaustion */
 		DEBUG_ERROR("calloc: failed in %s\n", __func__);
@@ -590,16 +599,22 @@ bool cortexm_probe(adiv5_access_port_s *ap)
 
 	t->priv = priv;
 	t->priv_free = cortexm_priv_free;
+	/* 关联这个 ap,这里很重要 */
 	priv->ap = ap;
 
 	t->check_error = cortexm_check_error;
+	/* cortexm 架构的内存读写接口 */
 	t->mem_read = cortexm_mem_read;
 	t->mem_write = cortexm_mem_write;
 
 	t->driver = cortexm_driver_str;
 
+	/* 读取 cpuid */
 	cortexm_read_cpuid(t, ap);
 
+	/*
+	 * 关联这个 target 的 attach 和 detach 接口
+	 * */
 	t->attach = cortexm_attach;
 	t->detach = cortexm_detach;
 
@@ -607,6 +622,7 @@ bool cortexm_probe(adiv5_access_port_s *ap)
 	uint32_t cpacr = target_mem_read32(t, CORTEXM_CPACR);
 	cpacr |= 0x00f00000U; /* CP10 = 0b11, CP11 = 0b11 */
 	target_mem_write32(t, CORTEXM_CPACR, cpacr);
+	/* 是否支持 FP 扩展 */
 	bool is_cortexmf = target_mem_read32(t, CORTEXM_CPACR) == cpacr;
 
 	/* Should probe here to make sure it's Cortex-M3 */
@@ -626,8 +642,10 @@ bool cortexm_probe(adiv5_access_port_s *ap)
 	t->breakwatch_set = cortexm_breakwatch_set;
 	t->breakwatch_clear = cortexm_breakwatch_clear;
 
+	/* 添加 cortexm 架构的额外的命令 */
 	target_add_commands(t, cortexm_cmd_list, cortexm_driver_str);
 
+	/* 如果支持浮点数,还要额外加上浮点寄存器的内容 */
 	if (is_cortexmf) {
 		t->target_options |= TOPT_FLAVOUR_V7MF;
 		t->regs_size += sizeof(regnum_cortex_mf);
@@ -637,6 +655,7 @@ bool cortexm_probe(adiv5_access_port_s *ap)
 	priv->demcr = CORTEXM_DEMCR_TRCENA | CORTEXM_DEMCR_VC_HARDERR | CORTEXM_DEMCR_VC_CORERESET;
 
 	/* Check cache type */
+	/* 检查是否支持 cache */
 	uint32_t ctr = target_mem_read32(t, CORTEXM_CTR);
 	if (ctr >> 29U == 4U) {
 		priv->has_cache = true;
@@ -793,6 +812,7 @@ bool cortexm_attach(target_s *t)
 	target_mem_write32(t, CORTEXM_DFSR, CORTEXM_DFSR_RESETALL);
 
 	/* size the break/watchpoint units */
+	/* 填充 watchpoints 和 break 的数量 */
 	priv->hw_breakpoint_max = CORTEXM_MAX_BREAKPOINTS;
 	const uint32_t flash_break_cfg = target_mem_read32(t, CORTEXM_FPB_CTRL);
 	const uint32_t breakpoints = ((flash_break_cfg >> 4U) & 0xfU);
@@ -842,6 +862,7 @@ void cortexm_detach(target_s *t)
 {
 	cortexm_priv_s *priv = t->priv;
 
+	/* 清除所有的 breakpoints 和 watchpoints */
 	/* Clear any stale breakpoints */
 	for (size_t i = 0; i < priv->hw_breakpoint_max; i++)
 		target_mem_write32(t, CORTEXM_FPB_COMP(i), 0);

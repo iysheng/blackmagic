@@ -87,8 +87,12 @@ uint32_t adiv5_swdp_scan(uint32_t targetid)
 {
 	volatile exception_s e;
 
+	/* 释放 target 链表空间 */
 	target_list_free();
 
+	/*
+	 * 为什么要先构造一个这样的结构体呢???
+	 * */
 	adiv5_debug_port_s idp = {
 		.dp_low_write = firmware_dp_low_write,
 		.error = firmware_swdp_error,
@@ -193,6 +197,9 @@ uint32_t adiv5_swdp_scan(uint32_t targetid)
 				continue;
 		}
 
+		/*
+		 * 申请一个 debug_port
+		 * */
 		adiv5_debug_port_s *dp = calloc(1, sizeof(*dp));
 		if (!dp) { /* calloc failed: heap exhaustion */
 			DEBUG_ERROR("calloc: failed in %s\n", __func__);
@@ -203,6 +210,7 @@ uint32_t adiv5_swdp_scan(uint32_t targetid)
 		dp->instance = i;
 
 		adiv5_dp_abort(dp, ADIV5_DP_ABORT_STKERRCLR);
+		/* 初始化这个 dp */
 		adiv5_dp_init(dp, 0);
 	}
 	return target_list ? 1U : 0U;

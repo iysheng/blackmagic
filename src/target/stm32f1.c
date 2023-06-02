@@ -136,6 +136,7 @@ static uint16_t stm32f1_read_idcode(target_s *const target)
 /* Identify GD32F1, GD32F2 and GD32F3 chips */
 bool gd32f1_probe(target_s *target)
 {
+	/* 获取 device_id */
 	const uint16_t device_id = stm32f1_read_idcode(target);
 	switch (device_id) {
 	case 0x414U: /* Gigadevice gd32f303 */
@@ -143,6 +144,7 @@ bool gd32f1_probe(target_s *target)
 		target->driver = "GD32F3";
 		break;
 	case 0x418U:
+		/* 关联 driver 字符串 */
 		target->driver = "GD32F2";
 		break;
 	case 0x410U: /* Gigadevice gd32f103, gd32e230 */
@@ -158,14 +160,20 @@ bool gd32f1_probe(target_s *target)
 	}
 
 	const uint32_t signature = target_mem_read32(target, GD32Fx_FLASHSIZE);
+	/*
+	 * 获取 flash 和 ram 大小
+	 * */
 	const uint16_t flash_size = signature & 0xffffU;
 	const uint16_t ram_size = signature >> 16U;
 
+	/* 填充芯片 id */
 	target->part_id = device_id;
+	/* 关联 flash 擦除接口函数 */
 	target->mass_erase = stm32f1_mass_erase;
 	/* 添加内存和 flash 区域,超过这个区域范围的数据无法直接使用 x 函数打印出来 */
 	target_add_ram(target, 0x20000000, ram_size * 1024U);
 	stm32f1_add_flash(target, 0x8000000, (size_t)flash_size * 1024U, 0x400);
+	/* 添加 stm32f1 系列专有的命令集合 */
 	target_add_commands(target, stm32f1_cmd_list, target->driver);
 
 	return true;

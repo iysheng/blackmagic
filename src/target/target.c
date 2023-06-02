@@ -25,6 +25,7 @@
 #include <stdarg.h>
 #include <unistd.h>
 
+/* 管理所有 target_s 的链表首节点 */
 target_s *target_list = NULL;
 
 #define STDOUT_READ_BUF_SIZE       64U
@@ -47,6 +48,7 @@ target_s *target_new(void)
 		return NULL;
 	}
 
+	/* 添加到链表中 */
 	if (target_list) {
 		target_s *c = target_list;
 		while (c->next)
@@ -57,6 +59,7 @@ target_s *target_new(void)
 
 	t->target_storage = NULL;
 
+	/* 这里就会给这个 target 添加 flash 擦除函数接口集合 */
 	target_add_commands(t, target_cmd_list, "Target");
 	return t;
 }

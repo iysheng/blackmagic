@@ -48,7 +48,7 @@ void blackmagic_usb_init(void)
 		usbd_control_buffer, sizeof(usbd_control_buffer));
 
 	/*
-	 * 注册两个 config 的回调函数
+	 * 给这个 config 注册两个回调函数
 	 * */
 	usbd_register_set_config_callback(usbdev, usb_serial_set_config);
 	usbd_register_set_config_callback(usbdev, dfu_set_config);

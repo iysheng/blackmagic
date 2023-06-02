@@ -472,8 +472,10 @@ static void remote_packet_process_adiv5(const char *const packet, const size_t p
 
 void remote_packet_process(unsigned i, char *packet)
 {
+	/* 解析 packet[0] 内容 */
 	switch (packet[0]) {
 	case REMOTE_SWDP_PACKET:
+		/* swd 接口处理 */
 		remote_packet_process_swd(i, packet);
 		break;
 

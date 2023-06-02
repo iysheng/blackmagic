@@ -43,6 +43,7 @@
 
 /* Values from ST RM0436 (STM32MP157), 66.9 APx_IDR
  * and ST RM0438 (STM32L5) 52.3.1, AP_IDR */
+/* AP 的所有类型 */
 #define ARM_AP_TYPE_AHB  1U
 #define ARM_AP_TYPE_APB  3U
 #define ARM_AP_TYPE_AXI  4U
@@ -84,6 +85,7 @@ typedef enum cid_class {
 	cidc_ptb = 0xb,    /* Peripheral Test Block (PTB) */
 	/* 0xc */          /* Reserved */
 	cidc_dess = 0xd,   /* OptimoDE Data Engine SubSystem (DESS) component */
+	/* 通用 ip 组件, 比如 cortex-m3 核心等 */
 	cidc_gipc = 0xe,   /* Generic IP Component */
 	cidc_sys = 0xf,    /* CoreLink, PrimeCell, or other system component with no standard register layout */
 	cidc_unknown = 0x10
@@ -291,6 +293,7 @@ static const struct {
 
 void adiv5_ap_ref(adiv5_access_port_s *ap)
 {
+	/* 如果这是一个新的 ap,那么 refcnt 要自加 */
 	if (ap->refcnt == 0)
 		ap->dp->refcnt++;
 	ap->refcnt++;
@@ -321,6 +324,7 @@ static uint32_t adiv5_ap_read_id(adiv5_access_port_s *ap, uint32_t addr)
 {
 	uint32_t res = 0;
 	uint8_t data[16];
+	/* 将 CIDR 寄存器重新整合成有效的 32 bit */
 	adiv5_mem_read(ap, data, addr, sizeof(data));
 	for (size_t i = 0; i < 4U; ++i)
 		res |= (data[4U * i] << (i * 8U));
@@ -481,10 +485,14 @@ static void adiv5_component_probe(
 {
 	(void)num_entry;
 
+	/*
+	 * 针对 32 位处理器, base reg 有效位就是 31:12
+	 * */
 	addr &= 0xfffff000U; /* Mask out base address */
 	if (addr == 0)       /* No rom table on this AP */
 		return;
 
+	/* CIDR 表示 component identifications registers */
 	const volatile uint32_t cidr = adiv5_ap_read_id(ap, addr + CIDR0_OFFSET);
 	if (ap->dp->fault) {
 		DEBUG_ERROR("Error reading CIDR on AP%u: %u\n", ap->apsel, ap->dp->fault);
@@ -543,6 +551,7 @@ static void adiv5_component_probe(
 			ap->designer_code = designer_code;
 			ap->partno = part_number;
 
+			/* 如果是 ATMEL 特殊类型的 */
 			if (ap->designer_code == JEP106_MANUFACTURER_ATMEL && ap->partno == 0xcd0U) {
 				uint32_t ctrlstat = adiv5_mem_read32(ap, SAMX5X_DSU_CTRLSTAT);
 				if (ctrlstat & SAMX5X_STATUSB_PROT) {
@@ -589,7 +598,7 @@ static void adiv5_component_probe(
 		}
 		DEBUG_INFO("%sROM: Table END\n", indent);
 
-	} else {
+	} else { /* 如果不是一个 ROM TABLE 的 AP */
 		if (designer_code != JEP106_MANUFACTURER_ARM && designer_code != JEP106_MANUFACTURER_ARM_CHINA) {
 			/* non arm components not supported currently */
 			DEBUG_WARN("%s0x%" PRIx32 ": 0x%08" PRIx32 "%08" PRIx32 " Non ARM component ignored\n", indent, addr,
@@ -630,6 +639,7 @@ static void adiv5_component_probe(
 			switch (arm_component_lut[i].arch) {
 			case aa_cortexm:
 				DEBUG_INFO("%s-> cortexm_probe\n", indent + 1);
+				/* cortexm probe 去 probe 这个 ap */
 				cortexm_probe(ap);
 				break;
 			case aa_cortexa:
@@ -650,6 +660,9 @@ static void adiv5_component_probe(
 	}
 }
 
+/*
+ * 根据 dp 申请一个 ap 的内存空间
+ * */
 adiv5_access_port_s *adiv5_new_ap(adiv5_debug_port_s *dp, uint8_t apsel)
 {
 #if PC_HOSTED == 1
@@ -661,7 +674,9 @@ adiv5_access_port_s *adiv5_new_ap(adiv5_debug_port_s *dp, uint8_t apsel)
 	/* Assume valid and try to read IDR */
 	tmpap.dp = dp;
 	tmpap.apsel = apsel;
+	/* 读取 AP 的身份id寄存器 */
 	tmpap.idr = adiv5_ap_read(&tmpap, ADIV5_AP_IDR);
+	/* 读取 AP 的基地址 Debug Base Address register */
 	tmpap.base = adiv5_ap_read(&tmpap, ADIV5_AP_BASE);
 	/*
 	 * Check the Debug Base Address register. See ADIv5
@@ -688,12 +703,14 @@ adiv5_access_port_s *adiv5_new_ap(adiv5_debug_port_s *dp, uint8_t apsel)
 	}
 
 	/* It's valid to so create a heap copy */
+	/* 申请一个 AP */
 	adiv5_access_port_s *ap = malloc(sizeof(*ap));
 	if (!ap) { /* malloc failed: heap exhaustion */
 		DEBUG_ERROR("malloc: failed in %s\n", __func__);
 		return NULL;
 	}
 
+	/* 初始化这个 ap */
 	memcpy(ap, &tmpap, sizeof(*ap));
 
 #if defined(ENABLE_DEBUG)
@@ -739,6 +756,7 @@ void adiv5_dp_init(adiv5_debug_port_s *dp, const uint32_t idcode)
 	 * We have to initialse the DP routines up front before any adiv5_* functions are called or
 	 * bad things happen under BMDA (particularly CMSIS-DAP)
 	 */
+	/* 在这里又赋值了一遍,为什么呢? */
 	dp->ap_write = firmware_ap_write;
 	dp->ap_read = firmware_ap_read;
 	/* dp 的内存读写端口 */
@@ -756,6 +774,9 @@ void adiv5_dp_init(adiv5_debug_port_s *dp, const uint32_t idcode)
 	 *
 	 * for SWD-DP, we are guaranteed to be DP v1 or later.
 	 */
+	/*
+	 * dpidr 是 debug port identification register
+	 * */
 	volatile uint32_t dpidr = 0;
 	volatile exception_s e;
 	TRY_CATCH (e, EXCEPTION_ALL) {
@@ -768,6 +789,7 @@ void adiv5_dp_init(adiv5_debug_port_s *dp, const uint32_t idcode)
 		return;
 	}
 
+	/* 有 dp 的版本号 */
 	dp->version = (dpidr & ADIV5_DP_DPIDR_VERSION_MASK) >> ADIV5_DP_DPIDR_VERSION_OFFSET;
 	if (dp->version > 0 && (dpidr & 1U)) {
 		/*
@@ -818,6 +840,7 @@ void adiv5_dp_init(adiv5_debug_port_s *dp, const uint32_t idcode)
 		const uint16_t tdesigner = (targetid & ADIV5_DP_TARGETID_TDESIGNER_MASK) >> ADIV5_DP_TARGETID_TDESIGNER_OFFSET;
 
 		/* convert it to our internal representation, See JEP-106 code list */
+		/* DP 的 designer 等相关编号 */
 		dp->target_designer_code =
 			(tdesigner & ADIV5_DP_DESIGNER_JEP106_CONT_MASK) << 1U | (tdesigner & ADIV5_DP_DESIGNER_JEP106_CODE_MASK);
 
@@ -830,6 +853,9 @@ void adiv5_dp_init(adiv5_debug_port_s *dp, const uint32_t idcode)
 			(targetid & (ADIV5_DP_TARGETID_TDESIGNER_MASK | ADIV5_DP_TARGETID_TPARTNO_MASK)) | 1U;
 	}
 
+	/*
+	 * 如果是树莓派,那么直接返回
+	 * */
 	if (dp->designer_code == JEP106_MANUFACTURER_RASPBERRY && dp->partno == 0x2U) {
 		rp_rescue_setup(dp);
 		return;
@@ -891,6 +917,9 @@ void adiv5_dp_init(adiv5_debug_port_s *dp, const uint32_t idcode)
 	size_t invalid_aps = 0;
 	dp->refcnt++;
 	for (size_t i = 0; i < 256U && invalid_aps < 8U; ++i) {
+		/*
+		 * 根据 dp,申请一个 ap 的内存空间
+		 * */
 		adiv5_access_port_s *ap = adiv5_new_ap(dp, i);
 		if (ap == NULL) {
 			/* Clear sticky errors in case scanning for this AP triggered any */
@@ -908,18 +937,23 @@ void adiv5_dp_init(adiv5_debug_port_s *dp, const uint32_t idcode)
 			continue;
 		}
 
+		/* 这里为什么要 probe 这几个 ap 呢??? */
 		kinetis_mdm_probe(ap);
 		nrf51_mdm_probe(ap);
 		efm32_aap_probe(ap);
 		lpc55_dmap_probe(ap);
 
 		/* Try to prepare the AP if it seems to be a AHB (memory) AP */
+		/* 这里为什么要检查 apsel 是否是 0 呢,是表示第一个 ap
+		 * 如果是第 0 个 ap,并且是 AHB 类型的,那么需要额外做一些准备工作 cortexm_prepare
+		 * */
 		if (!ap->apsel && (ap->idr & 0xfU) == ARM_AP_TYPE_AHB) {
 			if (!cortexm_prepare(ap))
 				DEBUG_WARN("adiv5: Failed to prepare AP, results may be unpredictable\n");
 		}
 
 		/* The rest should only be added after checking ROM table */
+		/* probe 了设备,为 probe 出来的设备创建了 target 结构体,并添加到链表中 */
 		adiv5_component_probe(ap, ap->base, 0, 0);
 		/*
 		 * Having completed discovery on this AP, if we're not in connect-under-reset mode,

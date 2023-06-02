@@ -31,6 +31,7 @@
 
 #include <stdarg.h>
 
+/* 获取 gdb 数据包 */
 size_t gdb_getpacket(char *const packet, const size_t size)
 {
 	unsigned char csum;
@@ -47,28 +48,40 @@ size_t gdb_getpacket(char *const packet, const size_t size)
 			do {
 				/* Smells like bad code */
 				packet[0] = gdb_if_getchar();
+				/* 表示 end of transmission */
 				if (packet[0] == '\x04')
 					return 1;
+				/* gdb 协议的 package 包格式
+				 * $packet-data#checksum gdb.pdf Appendix E GDB Remote Serial Protocol
+				 * 开头是 $
+				 * 结尾是 #
+				 * */
 			} while (packet[0] != '$' && packet[0] != REMOTE_SOM);
 #if PC_HOSTED == 0
+			/* 如果是一个 REMOTE START 的帧开始 */
 			if (packet[0] == REMOTE_SOM) {
 				/* This is probably a remote control packet - get and handle it */
 				offset = 0;
+				/* 表示接收到了 remote_package */
 				bool getting_remote_packet = true;
 				while (getting_remote_packet) {
 					/* Smells like bad code */
+					/* 继续读取一个字节 */
 					const char c = gdb_if_getchar();
 					switch (c) {
 					case REMOTE_SOM: /* Oh dear, packet restarts */
 						offset = 0;
 						break;
 
+					/* 表示接收到了一个完整的帧 */
 					case REMOTE_EOM: /* Complete packet for processing */
 						packet[offset] = 0;
+						/* 远端 packet 处理 */
 						remote_packet_process(offset, packet);
 						getting_remote_packet = false;
 						break;
 
+						/* 表示真实的 gdb packet  */
 					case '$': /* A 'real' gdb packet, best stop squatting now */
 						packet[0] = '$';
 						getting_remote_packet = false;

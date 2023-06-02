@@ -80,6 +80,9 @@ static bool cmd_debug_bmp(target_s *t, int argc, const char **argv);
 static bool cmd_shutdown_bmda(target_s *t, int argc, const char **argv);
 #endif
 
+/*
+ * 命令处理函数集合
+ * */
 const command_s cmd_list[] = {
 	{"version", cmd_version, "Display firmware version info"},
 	{"help", cmd_help, "Display help for monitor commands"},
@@ -145,6 +148,7 @@ int command_process(target_s *t, char *cmd)
 		argv[argc++] = part;
 
 	/* Look for match and call handler */
+	/* 遍历执行的函数 */
 	for (const command_s *cmd = cmd_list; cmd->cmd; ++cmd) {
 		/* Accept a partial match as GDB does.
 		 * So 'mon ver' will match 'monitor version'
@@ -240,6 +244,9 @@ static bool cmd_jtag_scan(target_s *target, int argc, const char **argv)
 	return true;
 }
 
+/*
+ * swdp 接口扫描连接的硬件设备
+ * */
 bool cmd_swdp_scan(target_s *t, int argc, const char **argv)
 {
 	(void)t;
@@ -277,6 +284,7 @@ bool cmd_swdp_scan(target_s *t, int argc, const char **argv)
 		return false;
 	}
 
+	/* 列出来 probe 出来的所有 probe */
 	cmd_targets(NULL, 0, NULL);
 	platform_target_clk_output_enable(false);
 	morse(NULL, false);

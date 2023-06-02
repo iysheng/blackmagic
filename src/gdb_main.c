@@ -124,6 +124,7 @@ int gdb_main_loop(target_controller_s *tc, char *pbuf, size_t pbuf_size, size_t 
 	/* GDB protocol main loop */
 	switch (pbuf[0]) {
 	/* Implementation of these is mandatory! */
+		/* 读取通用寄存器 */
 	case 'g': { /* 'g': Read general registers */
 		ERROR_IF_NO_TARGET();
 		const size_t reg_size = target_regs_size(cur_target);
@@ -305,6 +306,7 @@ int gdb_main_loop(target_controller_s *tc, char *pbuf, size_t pbuf_size, size_t 
 		handle_kill_target();
 		break;
 
+		/* 绑定这个 target */
 	case 'r': /* Reset the target system */
 	case 'R': /* Restart the target program */
 		if (cur_target)
@@ -335,6 +337,7 @@ int gdb_main_loop(target_controller_s *tc, char *pbuf, size_t pbuf_size, size_t 
 	}
 
 	case 'q': /* General query packet */
+			/* 通用的轮询 packet */
 		handle_q_packet(pbuf, size);
 		break;
 
@@ -504,7 +507,7 @@ static void exec_q_thread_info(const char *packet, const size_t length)
 }
 
 static const cmd_executer_s q_commands[] = {
-	{"qRcmd,", exec_q_rcmd},
+	{"qRcmd,", exec_q_rcmd}, /* 交给本地执行器执行的命令 */
 	{"qSupported", exec_q_supported},
 	{"qXfer:memory-map:read::", exec_q_memory_map},
 	{"qXfer:features:read:target.xml:", exec_q_feature_read},

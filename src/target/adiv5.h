@@ -127,7 +127,19 @@
 #define ADIV5_AP_DB(x) ADIV5_AP_REG(0x10U + (4U * (x)))
 /* 0x20:0xf0 - Reserved */
 #define ADIV5_AP_CFG  ADIV5_AP_REG(0xf4U)
+/* Debug Base Address register
+ *
+ * ● debug registers 的起始地址
+ * ● 存放连接的 debug 组件的 ROM 表的基地址
+ *
+ *
+ * */
 #define ADIV5_AP_BASE ADIV5_AP_REG(0xf8U)
+/*
+ * IDR 中包含了两个很关键的信息
+ * bit[16:13] CLASS (0000: 未定以类型 0001: COM-AP 1000: MEM-AP)
+ * bit[3:0]   TYPE  (0-6:)
+ * */
 #define ADIV5_AP_IDR  ADIV5_AP_REG(0xfcU)
 
 /* AP Control and Status Word (CSW) */
