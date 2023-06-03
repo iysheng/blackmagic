@@ -129,6 +129,7 @@ static const struct {
 			.bDescriptorType = CS_INTERFACE,
 			.bDescriptorSubtype = USB_CDC_TYPE_CALL_MANAGEMENT,
 			.bmCapabilities = 0,
+			/* 数据接口的地址对应的是 gdb_data_iface 的地址 */
 			.bDataInterface = GDB_IF_NO + 1U,
 		},
 	.acm =
@@ -143,6 +144,7 @@ static const struct {
 			.bFunctionLength = sizeof(usb_cdc_union_descriptor_s),
 			.bDescriptorType = CS_INTERFACE,
 			.bDescriptorSubtype = USB_CDC_TYPE_UNION,
+			/* 控制接口的 interface */
 			.bControlInterface = GDB_IF_NO,
 			.bSubordinateInterface0 = GDB_IF_NO + 1U,
 		},
