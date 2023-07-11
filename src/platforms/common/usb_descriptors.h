@@ -60,7 +60,7 @@ static const usb_device_descriptor_s dev_desc = {
 	.idVendor = 0x1d50,
 	.idProduct = 0x6018,
 	.bcdDevice = 0x0100,
-	/* 供应商字符串描述符索引 */
+	/* 供应商字符串描述符索引,非0表示有对应的字符串在 string 区 */
 	.iManufacturer = 1,
 	/* 产品字符串描述符索引 */
 	.iProduct = 2,
@@ -90,14 +90,20 @@ static const usb_endpoint_descriptor_s gdb_comm_endp = {
 	.bInterval = USB_MAX_INTERVAL,
 };
 
-/* gdb 的数据 endpoint 实体,分别对应 IN 和 OUT */
+/* gdb 的数据接口有两个 endpoint 实体,
+ * 分别对应 IN 和 OUT
+ * */
 static const usb_endpoint_descriptor_s gdb_data_endp[] = {
 	{
 		.bLength = USB_DT_ENDPOINT_SIZE,
 		.bDescriptorType = USB_DT_ENDPOINT,
+		/* 端点地址设置，这里面包含了地址以及端点的传输方向属性 */
 		.bEndpointAddress = CDCACM_GDB_ENDPOINT,
+		/* bulk transaction 批量事务，一般用在传输数据的场景 */
 		.bmAttributes = USB_ENDPOINT_ATTR_BULK,
+		/* 该端点支持的最大包长度 */
 		.wMaxPacketSize = CDCACM_PACKET_SIZE,
+		/* 描述的是端点的查询时间 */
 		.bInterval = 1,
 	},
 	{
@@ -158,10 +164,11 @@ static const usb_interface_descriptor_s gdb_comm_iface = {
 	.bLength = USB_DT_INTERFACE_SIZE,
 	/* 描述符的类型也是 4 */
 	.bDescriptorType = USB_DT_INTERFACE,
-	/* 接口号,这个值和接口关联描述符(0X0B)中的 bFirstInterface 对应 */
+	/* 接口编号，从0开始
+	 * 这个值和接口关联描述符(0X0B)中的 bFirstInterface 对应 */
 	.bInterfaceNumber = 0,
 	.bAlternateSetting = 0,
-	/* 端点 0 以外的端点数 */
+	/* 该接口使用到的端点数 */
 	.bNumEndpoints = 1,
 	/* 类代码 */
 	.bInterfaceClass = USB_CLASS_CDC,
@@ -169,7 +176,7 @@ static const usb_interface_descriptor_s gdb_comm_iface = {
 	.bInterfaceSubClass = USB_CDC_SUBCLASS_ACM,
 	/* 协议代码 */
 	.bInterfaceProtocol = USB_CDC_PROTOCOL_NONE,
-	/* 字符串描述符的索引值 */
+	/* 描述该接口的字符串在字符串描述符中的索引值 */
 	.iInterface = 4,
 
 	/* 关联的 endpoint */
@@ -180,15 +187,21 @@ static const usb_interface_descriptor_s gdb_comm_iface = {
 	.extralen = sizeof(gdb_cdcacm_functional_descriptors),
 };
 
+/*
+ * gdb data 接口描述符
+ * */
 static const usb_interface_descriptor_s gdb_data_iface = {
 	.bLength = USB_DT_INTERFACE_SIZE,
 	.bDescriptorType = USB_DT_INTERFACE,
+	/* 该接口的编号 */
 	.bInterfaceNumber = GDB_IF_NO + 1U,
 	.bAlternateSetting = 0,
+	/* 该接口使用的端点数量 */
 	.bNumEndpoints = 2,
 	.bInterfaceClass = USB_CLASS_DATA,
 	.bInterfaceSubClass = 0,
 	.bInterfaceProtocol = 0,
+	/* 描述该接口字符串的索引值，0表示无效 */
 	.iInterface = 0,
 
 	.endpoint = gdb_data_endp,
@@ -295,6 +308,7 @@ static const usb_interface_descriptor_s uart_comm_iface = {
 	.bInterfaceClass = USB_CLASS_CDC,
 	.bInterfaceSubClass = USB_CDC_SUBCLASS_ACM,
 	.bInterfaceProtocol = USB_CDC_PROTOCOL_NONE,
+	/* 描述该接口的字符串在字符串描述符中的索引值 */
 	.iInterface = 5,
 
 	/* 针对这些控制端口,就有一些额外的属性信息 */
@@ -466,7 +480,7 @@ static const usb_config_descriptor_s config = {
 	 * 第 4 bit 表示电池供电
 	 * */
 	.bmAttributes = 0x80,
-	/* 所需的最大总线电流是 250ma */
+	/* 所需的最大总线电流是 250*2ma(量纲是2ma)=500ma */
 	.bMaxPower = 250,
 
 	.interface = ifaces,

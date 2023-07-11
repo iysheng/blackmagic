@@ -201,6 +201,7 @@ extern bool debug_bmp;
 #define SWD_CR       GPIO_CRL(SWDIO_PORT)
 #define SWD_CR_SHIFT (4U << 2U)
 
+/* GPIO 相关的控制函数 */
 #define TMS_SET_MODE()                                                                       \
 	do {                                                                                     \
 		gpio_set(TMS_DIR_PORT, TMS_DIR_PIN);                                                 \

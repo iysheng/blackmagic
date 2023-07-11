@@ -45,10 +45,14 @@ extern uint16_t usb_config;
  * UART_IF_NO + 1 对应的是 uart_data_endp 的地址, bEndpointAddress
  * TRACE_IF_NO 有关系
  * */
+/*
+ * 这三个宏描述的是数据 endpoint
+ * */
 #define CDCACM_GDB_ENDPOINT  1U
 #define CDCACM_UART_ENDPOINT 3U
 #define TRACE_ENDPOINT       5U
 
+/* 这三个宏描述的是控制 endpoint */
 #define GDB_IF_NO  0U
 #define UART_IF_NO 2U
 #define DFU_IF_NO  4U

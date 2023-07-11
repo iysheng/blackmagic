@@ -65,7 +65,7 @@ uint16_t usb_get_config(void)
 	return usb_config;
 }
 
-/* USB 中断处理函数
+/* USB 中断处理函数, 这个中断处理函数是 USB 通信的入口
  * 针对 native 平台宏展开后是函数 usb_lp_can_rx0_isr
  * 这个中断函数在 libopencm3 中定义
  * */
