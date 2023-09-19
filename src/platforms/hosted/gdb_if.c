@@ -291,6 +291,7 @@ char gdb_if_getchar(void)
 	char value = '\0';
 	int error = op_needs_retry;
 	while (error == op_needs_retry) {
+		/* 单次接收一个字节 */
 		const ssize_t result = recv(gdb_if_conn, &value, 1, 0);
 		if (result < 0) {
 			error = socket_error();

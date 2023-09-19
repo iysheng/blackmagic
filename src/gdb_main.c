@@ -235,6 +235,7 @@ int gdb_main_loop(target_controller_s *tc, char *pbuf, size_t pbuf_size, size_t 
 		 * by calling gdb_poll_target() as long as `cur_target`
 		 * is not NULL and `gdb_target_running` is true.
 		 */
+		/* 标记 target 已经绑定 */
 		gdb_target_running = true;
 		break;
 	}
@@ -345,6 +346,7 @@ int gdb_main_loop(target_controller_s *tc, char *pbuf, size_t pbuf_size, size_t 
 
 	case 'Q': /* General set packet */
 	case 'q': /* General query packet */
+		/* 在这里读取的 target 列表吧 */
 		handle_q_packet(pbuf, size);
 		break;
 

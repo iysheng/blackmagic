@@ -146,6 +146,7 @@ uint32_t adiv5_swd_read_no_check(const uint16_t addr)
 	return res == SWDP_ACK_OK ? data : 0;
 }
 
+/* 探测 targets */
 bool adiv5_swd_scan(const uint32_t targetid)
 {
 	/* Free the device list if any */
@@ -428,20 +429,19 @@ uint32_t firmware_swdp_low_access(adiv5_debug_port_s *dp, const uint8_t RnW, con
 			DEBUG_ERROR("SWD access resulted in parity error\n");
 			raise_exception(EXCEPTION_ERROR, "SWD parity error");
 		}
-	} else
+	} else {
 		swd_proc.seq_out_parity(value, 32U);
-
-	/* ARM Debug Interface Architecture Specification ADIv5.0 to ADIv5.2
-	 * tells to clock the data through SW-DP to either :
-	 * - immediate start a new transaction
-	 * - continue to drive idle cycles
-	 * - or clock at least 8 idle cycles
-	 *
-	 * Implement last option to favour correctness over
-	 *   slight speed decrease
-	 */
-	swd_proc.seq_out(0, 8U);
-
+		/* ARM Debug Interface Architecture Specification ADIv5.0 to ADIv5.2
+		 * tells to clock the data through SW-DP to either :
+		 * - immediate start a new transaction
+		 * - continue to drive idle cycles
+		 * - or clock at least 8 idle cycles
+		 *
+		 * Implement last option to favour correctness over
+		 *   slight speed decrease
+		 */
+		swd_proc.seq_out(0, 8U);
+	}
 	return response;
 }
 
