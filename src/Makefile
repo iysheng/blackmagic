@@ -7,6 +7,7 @@ ENABLE_RISCV ?= 0
 
 SYS = $(shell $(CC) -dumpmachine)
 
+$(info PROBE_HOST=$(PROBE_HOST))
 ifneq ($(V), 1)
 MAKEFLAGS += --no-print-dir
 Q := @
@@ -133,8 +134,15 @@ SRC += jtagtap_generic.c swdptap_generic.c
 endif
 
 ifdef PC_HOSTED
+$(info come on here)
 CFLAGS += -DPC_HOSTED=1
+ifdef MYIR_LINUX
+CFLAGS += -DMYIR_LINUX=1
 else
+CFLAGS += -DMYIR_LINUX=0
+endif
+else
+$(error oh no come on here)
 CFLAGS += -DPC_HOSTED=0
 include platforms/common/Makefile.inc
 endif

@@ -23,17 +23,14 @@
 #ifndef PLATFORMS_NATIVE_PLATFORM_H
 #define PLATFORMS_NATIVE_PLATFORM_H
 
-#include "gpio.h"
-#include "timing.h"
-#include "timing_stm32.h"
-
-#define PLATFORM_HAS_TRACESWO
 #define PLATFORM_HAS_POWER_SWITCH
 
 #ifdef ENABLE_DEBUG
 #define PLATFORM_HAS_DEBUG
 extern bool debug_bmp;
 #endif
+
+extern bool running_status;
 
 #define PLATFORM_IDENT   ""
 #define UPD_IFACE_STRING "@Internal Flash   /0x08000000/8*001Kg"

@@ -428,7 +428,7 @@ static uint32_t cortexm_initial_halt(adiv5_access_port_s *ap)
 		 * will do nothing (return 0) and instead need RDBUFF read to get the data.
 		 */
 		if (ap->dp->mindp
-#if PC_HOSTED == 1
+#if PC_HOSTED == 1 && (MYIR_LINUX == 0 || BBB_LINUX == 0)
 			&& bmda_probe_info.type != PROBE_TYPE_CMSIS_DAP
 #endif
 		)

@@ -165,7 +165,7 @@ bool cmd_version(target_s *t, int argc, const char **argv)
 	(void)t;
 	(void)argc;
 	(void)argv;
-#if PC_HOSTED == 1
+#if PC_HOSTED == 1 && MYIR_LINUX == 0
 	char ident[256];
 	gdb_ident(ident, sizeof(ident));
 	DEBUG_WARN("%s\n", ident);

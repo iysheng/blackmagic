@@ -4,11 +4,21 @@ Q := @
 endif
 
 PC_HOSTED =
+PROBE_HOST ?= myir
 NO_LIBOPENCM3 =
 ifeq ($(PROBE_HOST), hosted)
 	PC_HOSTED = true
 	NO_LIBOPENCM3 = true
+else ifeq ($(PROBE_HOST), myir)
+	PC_HOSTED = true
+	MYIR_LINUX = true
+	NO_LIBOPENCM3 = true
+MFLAGS += 'PROBE_HOST = myir'
+MFLAGS += 'PC_HOSTED = true'
+MFLAGS += 'MYIR_LINUX = true'
 endif
+
+#$(error exit here for test)
 
 all:
 ifndef NO_LIBOPENCM3
