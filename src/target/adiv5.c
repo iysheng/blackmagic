@@ -34,7 +34,9 @@
 #include "cortexm.h"
 #include "exception.h"
 #if PC_HOSTED == 1
+#if MYIR_LINUX == 0
 #include "bmp_hosted.h"
+#endif
 #endif
 
 /* All this should probably be defined in a dedicated ADIV5 header, so that they
@@ -407,7 +409,7 @@ static uint32_t cortexm_initial_halt(adiv5_access_port_s *ap)
 		 * will do nothing (return 0) and instead need RDBUFF read to get the data.
 		 */
 		if (ap->dp->mindp
-#if PC_HOSTED == 1
+#if PC_HOSTED == 1 && MYIR_LINUX == 0
 			&& info.bmp_type != BMP_TYPE_CMSIS_DAP
 #endif
 		)
@@ -536,7 +538,7 @@ static void adiv5_component_probe(
 	/* CIDR preamble sanity check */
 	if ((cidr & ~CID_CLASS_MASK) != CID_PREAMBLE) {
 		DEBUG_WARN("%s%" PRIu32 " 0x%08" PRIx32 ": 0x%08" PRIx32 " <- does not match preamble (0x%08" PRIx32 ")\n",
-			indent, num_entry, addr, cidr, CID_PREAMBLE);
+			indent, (unsigned int)num_entry, (unsigned int)addr, (unsigned int)cidr, (unsigned int)CID_PREAMBLE);
 		return;
 	}
 

@@ -111,3 +111,6 @@ platforms/common/usb_dfu_stub.h
 platforms/common/usb_serial.c
 platforms/common/usb_serial.h
 platforms/common/usb_types.h
+platforms/myir/platform.c
+platforms/myir/platform.h
+platforms/myir/usbdfu.c

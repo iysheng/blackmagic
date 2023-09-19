@@ -22,21 +22,10 @@
 
 #include "general.h"
 #include "platform.h"
-#include "usb.h"
 #include "aux_serial.h"
 #include "morse.h"
 
-#include <libopencm3/stm32/rcc.h>
-#include <libopencm3/cm3/scb.h>
-#include <libopencm3/cm3/scs.h>
-#include <libopencm3/cm3/nvic.h>
-#include <libopencm3/stm32/exti.h>
-#include <libopencm3/stm32/usart.h>
-#include <libopencm3/usb/usbd.h>
-#include <libopencm3/stm32/rcc.h>
-#include <libopencm3/stm32/adc.h>
-#include <libopencm3/stm32/spi.h>
-#include <libopencm3/stm32/flash.h>
+bool running_status = false;
 
 static void adc_init(void);
 static void setup_vbus_irq(void);
