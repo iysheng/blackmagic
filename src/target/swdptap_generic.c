@@ -19,6 +19,7 @@
  */
 #include "general.h"
 
+/* swdp 底层读数据 */
 uint32_t swdptap_seq_in(int ticks)
 {
 	uint32_t index = 1;
@@ -33,6 +34,7 @@ uint32_t swdptap_seq_in(int ticks)
 	return ret;
 }
 
+/* 带有奇偶校验的写数据 */
 bool swdptap_seq_in_parity(uint32_t *ret, int ticks)
 {
 	uint32_t index = 1;
@@ -52,6 +54,7 @@ bool swdptap_seq_in_parity(uint32_t *ret, int ticks)
 	return parity;
 }
 
+/* swdp 底层写数据 */
 void swdptap_seq_out(uint32_t MS, int ticks)
 {
 	while (ticks--) {
@@ -60,6 +63,7 @@ void swdptap_seq_out(uint32_t MS, int ticks)
 	}
 }
 
+/* 带有奇偶校验的读数据 */
 void swdptap_seq_out_parity(uint32_t MS, int ticks)
 {
 	uint8_t parity = 0;

@@ -44,6 +44,7 @@ char *gdb_packet_buffer()
 static void bmp_poll_loop(void)
 {
 	SET_IDLE_STATE(false);
+	/* 如果 target 正在 running */
 	while (gdb_target_running && cur_target) {
 		gdb_poll_target();
 
@@ -51,8 +52,11 @@ static void bmp_poll_loop(void)
 		// alter these variables.
 		if (!gdb_target_running || !cur_target)
 			break;
+		/* 单次接收一个字节 */
 		char c = gdb_if_getchar_to(0);
+		/* 执行 target 的相关操作??? */
 		if (c == '\x03' || c == '\x04')
+			/* halt target */
 			target_halt_request(cur_target);
 		platform_pace_poll();
 #ifdef ENABLE_RTT
@@ -61,17 +65,20 @@ static void bmp_poll_loop(void)
 #endif
 	}
 
+	/* 开始没有绑定 target 时候要走到这里 */
 	SET_IDLE_STATE(true);
 	size_t size = gdb_getpacket(pbuf, GDB_PACKET_BUFFER_SIZE);
 	// If port closed and target detached, stay idle
 	if (pbuf[0] != '\x04' || cur_target)
 		SET_IDLE_STATE(false);
+	/* 处理接收到的 gdb 报文 */
 	gdb_main(pbuf, GDB_PACKET_BUFFER_SIZE, size);
 }
 
 int main(int argc, char **argv)
 {
 #if PC_HOSTED == 1
+	/* 平台初始化 */
 	platform_init(argc, argv);
 #else
 	(void)argc;
@@ -82,6 +89,7 @@ int main(int argc, char **argv)
 	while (true) {
 		volatile exception_s e;
 		TRY_CATCH (e, EXCEPTION_ALL) {
+			/* 接收数据报文并处理 */
 			bmp_poll_loop();
 		}
 		if (e.type) {

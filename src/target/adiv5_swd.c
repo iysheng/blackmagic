@@ -141,6 +141,7 @@ static uint32_t firmware_dp_low_read(const uint16_t addr)
 	return res == SWDP_ACK_OK ? data : 0;
 }
 
+/* 探测 targets */
 bool adiv5_swd_scan(const uint32_t targetid)
 {
 	/* Free the device list if any */
@@ -152,6 +153,7 @@ bool adiv5_swd_scan(const uint32_t targetid)
 		return false;
 	}
 
+	/* 关联 dp 底层函数接口 */
 	dp->dp_low_write = firmware_dp_low_write;
 	dp->error = firmware_swdp_error;
 	dp->dp_read = firmware_swdp_read;

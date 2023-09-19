@@ -119,6 +119,7 @@ extern bool debug_bmp;
 #define TCK_DIR_PIN  GPIO15
 #define TDO_PIN      GPIO6
 
+ // SWD 相关管脚定义
 #define SWDIO_DIR_PORT JTAG_PORT
 #define SWDIO_PORT     JTAG_PORT
 #define SWCLK_PORT     JTAG_PORT
@@ -126,6 +127,7 @@ extern bool debug_bmp;
 #define SWDIO_PIN      TMS_PIN
 #define SWCLK_PIN      TCK_PIN
 
+ // 复位相关管脚定义
 #define TRST_PORT       GPIOB
 #define TRST_PIN        GPIO1
 #define NRST_PORT       GPIOA

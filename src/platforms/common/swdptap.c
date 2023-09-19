@@ -180,6 +180,7 @@ static void swdptap_seq_out(const uint32_t tms_states, const size_t clock_cycles
 		swdptap_seq_out_no_delay(tms_states, clock_cycles);
 }
 
+/* 实际用的这里的这个函数？？？ */
 static void swdptap_seq_out_parity(const uint32_t tms_states, const size_t clock_cycles)
 {
 	int parity = __builtin_popcount(tms_states);
