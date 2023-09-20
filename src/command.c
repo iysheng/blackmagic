@@ -72,7 +72,7 @@ static bool cmd_rtt(target_s *t, int argc, const char **argv);
 #if defined(PLATFORM_HAS_DEBUG) && PC_HOSTED == 0
 static bool cmd_debug_bmp(target_s *t, int argc, const char **argv);
 #endif
-#if PC_HOSTED == 1
+#if PC_HOSTED == 1 && MYIR_LINUX == 0 && BBB_LINUX == 0
 static bool cmd_shutdown_bmda(target_s *t, int argc, const char **argv);
 #endif
 
@@ -213,7 +213,7 @@ static bool cmd_jtag_scan(target_s *target, int argc, const char **argv)
 	bool scan_result = false;
 	volatile exception_s e;
 	TRY_CATCH (e, EXCEPTION_ALL) {
-#if PC_HOSTED == 1
+#if PC_HOSTED == 1 && BBB_LINUX == 0 && MYIR_LINUX == 0
 		scan_result = bmda_jtag_scan();
 #else
 		scan_result = jtag_scan();
@@ -256,7 +256,7 @@ bool cmd_swd_scan(target_s *target, int argc, const char **argv)
 	bool scan_result = false;
 	volatile exception_s e;
 	TRY_CATCH (e, EXCEPTION_ALL) {
-#if PC_HOSTED == 1
+#if PC_HOSTED == 1 && MYIR_LINUX == 0 && BBB_LINUX == 0
 		scan_result = bmda_swd_scan(targetid);
 #else
 		scan_result = adiv5_swd_scan(targetid);
@@ -298,7 +298,7 @@ bool cmd_auto_scan(target_s *t, int argc, const char **argv)
 	bool scan_result = false;
 	volatile exception_s e;
 	TRY_CATCH (e, EXCEPTION_ALL) {
-#if PC_HOSTED == 1
+#if PC_HOSTED == 1 && MYIR_LINUX == 0 && BBB_LINUX == 0
 		scan_result = bmda_jtag_scan();
 #else
 		scan_result = jtag_scan();
@@ -307,7 +307,7 @@ bool cmd_auto_scan(target_s *t, int argc, const char **argv)
 			break;
 		gdb_out("JTAG scan found no devices, trying SWD!\n");
 
-#if PC_HOSTED == 1
+#if PC_HOSTED == 1 && MYIR_LINUX == 0 && BBB_LINUX == 0
 		scan_result = bmda_swd_scan(0);
 #else
 		scan_result = adiv5_swd_scan(0);
@@ -654,7 +654,7 @@ static bool cmd_debug_bmp(target_s *t, int argc, const char **argv)
 }
 #endif
 
-#if PC_HOSTED == 1
+#if PC_HOSTED == 1 && MYIR_LINUX == 0 && BBB_LINUX == 0
 static bool cmd_shutdown_bmda(target_s *t, int argc, const char **argv)
 {
 	(void)t;

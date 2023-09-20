@@ -87,7 +87,7 @@ bool jtag_scan(void)
 	 * any SWD/JTAG DPs in the chain
 	 */
 	DEBUG_INFO("Resetting TAP\n");
-#if PC_HOSTED == 1
+#if PC_HOSTED == 1 && MYIR_LINUX == 0
 	if (!bmda_jtag_init()) {
 		DEBUG_ERROR("JTAG not available\n");
 		return false;

@@ -289,7 +289,7 @@ struct adiv5_access_port {
 
 uint8_t make_packet_request(uint8_t RnW, uint16_t addr);
 
-#if PC_HOSTED == 0
+#if PC_HOSTED == 0 || MYIR_LINUX == 1 || BBB_LINUX == 1
 static inline bool adiv5_write_no_check(adiv5_debug_port_s *const dp, uint16_t addr, const uint32_t value)
 {
 	return dp->write_no_check(addr, value);

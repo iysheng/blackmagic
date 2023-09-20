@@ -126,7 +126,7 @@ char gdb_if_getchar(void)
 	return buffer_out[out_ptr++];
 }
 
-char gdb_if_getchar_to(const uint32_t timeout)
+har gdb_if_getchar_to(const uint32_t timeout)
 {
 	platform_timeout_s receive_timeout;
 	platform_timeout_set(&receive_timeout, timeout);

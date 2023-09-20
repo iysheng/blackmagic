@@ -31,6 +31,6 @@ char gdb_if_getchar(void);
 char gdb_if_getchar_to(uint32_t timeout);
 
 /* sending gdb_if_putchar(0, true) seems to work as keep alive */
-void gdb_if_putchar(char c, int flush);
+extern void gdb_if_putchar(char c, int flush);;
 
 #endif /* INCLUDE_GDB_IF_H */

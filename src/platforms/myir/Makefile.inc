@@ -13,12 +13,7 @@ endif
 
 SRC +=               \
 	platform.c \
-	gdb_if.c \
-	traceswodecode.c \
-	traceswo.c	\
-	serialno.c	\
-	timing.c	\
-	timing_stm32.c	\
+	debug.c
 
 all:	blackmagic
 
