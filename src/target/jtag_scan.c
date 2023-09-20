@@ -86,7 +86,7 @@ bool jtag_scan(void)
 	 * This will automatically do the SWD-to-JTAG sequence just in case we've got any SWJ-DP's in chain
 	 */
 	DEBUG_INFO("Resetting TAP\n");
-#if PC_HOSTED == 1
+#if PC_HOSTED == 1 && MYIR_LINUX == 0
 	if (!bmda_jtag_init()) {
 		DEBUG_ERROR("JTAG not available\n");
 		return false;

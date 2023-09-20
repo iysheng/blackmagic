@@ -32,6 +32,8 @@
 #define SWDIO_IN_PIN SWDIO_PIN
 #endif
 
+uint32_t target_clk_divider = 10;
+
 typedef enum swdio_status_e {
 	SWDIO_STATUS_FLOAT = 0,
 	SWDIO_STATUS_DRIVE
@@ -147,6 +149,8 @@ static void swdptap_seq_out_clk_delay(uint32_t tms_states, size_t clock_cycles) 
 
 static void swdptap_seq_out_clk_delay(const uint32_t tms_states, const size_t clock_cycles)
 {
+	(void)tms_states;
+	(void)clock_cycles;
 	for (size_t cycle = 0; cycle < clock_cycles; ++cycle) {
 		gpio_clear(SWCLK_PORT, SWCLK_PIN);
 		gpio_set_val(SWDIO_PORT, SWDIO_PIN, tms_states & (1 << cycle));
@@ -163,6 +167,8 @@ static void swdptap_seq_out_no_delay(uint32_t tms_states, size_t clock_cycles) _
 
 static void swdptap_seq_out_no_delay(const uint32_t tms_states, const size_t clock_cycles)
 {
+	(void)tms_states;
+	(void)clock_cycles;
 	for (size_t cycle = 0; cycle < clock_cycles; ++cycle) {
 		gpio_clear(SWCLK_PORT, SWCLK_PIN);
 		gpio_set_val(SWDIO_PORT, SWDIO_PIN, tms_states & (1 << cycle));
@@ -184,6 +190,7 @@ static void swdptap_seq_out(const uint32_t tms_states, const size_t clock_cycles
 static void swdptap_seq_out_parity(const uint32_t tms_states, const size_t clock_cycles)
 {
 	int parity = __builtin_popcount(tms_states);
+	(void)parity;
 	swdptap_seq_out(tms_states, clock_cycles);
 	gpio_set_val(SWDIO_PORT, SWDIO_PIN, parity & 1U);
 	for (volatile uint32_t counter = target_clk_divider + 1; counter > 0; --counter)

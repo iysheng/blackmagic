@@ -290,7 +290,7 @@ struct adiv5_access_port {
 
 uint8_t make_packet_request(uint8_t RnW, uint16_t addr);
 
-#if PC_HOSTED == 0
+#if PC_HOSTED == 0 || MYIR_LINUX == 1
 static inline uint32_t adiv5_dp_read(adiv5_debug_port_s *dp, uint16_t addr)
 {
 	return dp->dp_read(dp, addr);

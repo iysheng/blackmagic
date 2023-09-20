@@ -30,6 +30,18 @@
 extern bool debug_bmp;
 #endif
 
+#define debug_warning(...) printf("red")
+#define debug_error(...) printf("green")
+#define debug_info(...) printf("blue")
+
+#define gpio_set_val(x,y,z) (void)(x)
+#define gpio_set(x,y) (void)(x)
+#define gpio_get(x,y) (int)(x)
+#define gpio_clear(x,y) (void)(x)
+
+#define GPIOB (0)
+#define GPIOA (0)
+
 extern bool running_status;
 
 #define PLATFORM_IDENT   ""
@@ -156,9 +168,9 @@ extern bool running_status;
 
 #define LED_PORT      GPIOB
 #define LED_PORT_UART GPIOB
-#define LED_0         GPIO2
-#define LED_1         GPIO10
-#define LED_2         GPIO11
+#define LED_0         2
+#define LED_1         10
+#define LED_2         11
 #define LED_UART      LED_0
 #define LED_IDLE_RUN  LED_1
 #define LED_ERROR     LED_2
@@ -201,9 +213,9 @@ extern bool running_status;
 #define EXT_SPI_CS_PORT GPIOA
 #define EXT_SPI_CS      GPIO4
 
-#define SWD_CR       GPIO_CRL(SWDIO_PORT)
+#define SWD_CR       (void)(SWDIO_PORT)
 #define SWD_CR_SHIFT (4U << 2U)
-
+#define GPIO_BRR(x)     (void)()
 #define TMS_SET_MODE()                                                                       \
 	do {                                                                                     \
 		gpio_set(TMS_DIR_PORT, TMS_DIR_PIN);                                                 \
@@ -212,20 +224,10 @@ extern bool running_status;
 
 #define SWDIO_MODE_FLOAT()                        \
 	do {                                          \
-		uint32_t cr = SWD_CR;                     \
-		cr &= ~(0xfU << SWD_CR_SHIFT);            \
-		cr |= (0x4U << SWD_CR_SHIFT);             \
-		GPIO_BRR(SWDIO_DIR_PORT) = SWDIO_DIR_PIN; \
-		SWD_CR = cr;                              \
 	} while (0)
 
 #define SWDIO_MODE_DRIVE()                         \
 	do {                                           \
-		uint32_t cr = SWD_CR;                      \
-		cr &= ~(0xfU << SWD_CR_SHIFT);             \
-		cr |= (0x1U << SWD_CR_SHIFT);              \
-		GPIO_BSRR(SWDIO_DIR_PORT) = SWDIO_DIR_PIN; \
-		SWD_CR = cr;                               \
 	} while (0)
 
 #define UART_PIN_SETUP()                                                                                        \

@@ -54,7 +54,6 @@
 static bool cmd_version(target_s *t, int argc, const char **argv);
 static bool cmd_help(target_s *t, int argc, const char **argv);
 
-static bool cmd_jtag_scan(target_s *target, int argc, const char **argv);
 static bool cmd_swd_scan(target_s *t, int argc, const char **argv);
 static bool cmd_auto_scan(target_s *t, int argc, const char **argv);
 static bool cmd_frequency(target_s *t, int argc, const char **argv);
@@ -77,14 +76,13 @@ static bool cmd_rtt(target_s *t, int argc, const char **argv);
 #if defined(PLATFORM_HAS_DEBUG) && PC_HOSTED == 0
 static bool cmd_debug_bmp(target_s *t, int argc, const char **argv);
 #endif
-#if PC_HOSTED == 1
+#if PC_HOSTED == 1 && MYIR_LINUX == 0
 static bool cmd_shutdown_bmda(target_s *t, int argc, const char **argv);
 #endif
 
 const command_s cmd_list[] = {
 	{"version", cmd_version, "Display firmware version info"},
 	{"help", cmd_help, "Display help for monitor commands"},
-	{"jtag_scan", cmd_jtag_scan, "Scan JTAG chain for devices"},
 	{"swd_scan", cmd_swd_scan, "Scan SWD interface for devices: [TARGET_ID]"},
 	/* swdp scan 探测设备 */
 	{"swdp_scan", cmd_swd_scan, "Deprecated: use swd_scan instead"},
@@ -116,7 +114,7 @@ const command_s cmd_list[] = {
 #if defined(PLATFORM_HAS_DEBUG) && PC_HOSTED == 0
 	{"debug_bmp", cmd_debug_bmp, "Output BMP \"debug\" strings to the second vcom: [enable|disable]"},
 #endif
-#if PC_HOSTED == 1
+#if PC_HOSTED == 1 && MYIR_LINUX == 0
 	{"shutdown_bmda", cmd_shutdown_bmda, "Tell the BMDA server to shut down when the GDB connection closes"},
 #endif
 	{NULL, NULL, NULL},
@@ -202,49 +200,6 @@ bool cmd_help(target_s *t, int argc, const char **argv)
 	return true;
 }
 
-static bool cmd_jtag_scan(target_s *target, int argc, const char **argv)
-{
-	(void)target;
-	(void)argc;
-	(void)argv;
-
-	if (platform_target_voltage())
-		gdb_outf("Target voltage: %s\n", platform_target_voltage());
-
-	if (connect_assert_nrst)
-		platform_nrst_set_val(true); /* will be deasserted after attach */
-
-	bool scan_result = false;
-	volatile exception_s e;
-	TRY_CATCH (e, EXCEPTION_ALL) {
-#if PC_HOSTED == 1
-		scan_result = bmda_jtag_scan();
-#else
-		scan_result = jtag_scan();
-#endif
-	}
-	switch (e.type) {
-	case EXCEPTION_TIMEOUT:
-		gdb_outf("Timeout during scan. Is target stuck in WFI?\n");
-		break;
-	case EXCEPTION_ERROR:
-		gdb_outf("Exception: %s\n", e.msg);
-		break;
-	}
-
-	if (!scan_result) {
-		platform_target_clk_output_enable(false);
-		platform_nrst_set_val(false);
-		gdb_out("JTAG device scan failed!\n");
-		return false;
-	}
-
-	cmd_targets(NULL, 0, NULL);
-	platform_target_clk_output_enable(false);
-	morse(NULL, false);
-	return true;
-}
-
 bool cmd_swd_scan(target_s *t, int argc, const char **argv)
 {
 	(void)t;
@@ -260,7 +215,7 @@ bool cmd_swd_scan(target_s *t, int argc, const char **argv)
 	bool scan_result = false;
 	volatile exception_s e;
 	TRY_CATCH (e, EXCEPTION_ALL) {
-#if PC_HOSTED == 1
+#if PC_HOSTED == 1 && MYIR_LINUX == 0
 		scan_result = bmda_swd_scan(targetid);
 #else
 		scan_result = adiv5_swd_scan(targetid);
@@ -302,16 +257,16 @@ bool cmd_auto_scan(target_s *t, int argc, const char **argv)
 	bool scan_result = false;
 	volatile exception_s e;
 	TRY_CATCH (e, EXCEPTION_ALL) {
-#if PC_HOSTED == 1
+#if PC_HOSTED == 1 && MYIR_LINUX == 0
 		scan_result = bmda_jtag_scan();
-#else
-		scan_result = jtag_scan();
+/* #else */
+		/* scan_result = jtag_scan(); */
 #endif
 		if (scan_result)
 			break;
 		gdb_out("JTAG scan found no devices, trying SWD!\n");
 
-#if PC_HOSTED == 1
+#if PC_HOSTED == 1 && MYIR_LINUX == 0
 		scan_result = bmda_swd_scan(0);
 #else
 		scan_result = adiv5_swd_scan(0);
@@ -403,11 +358,7 @@ bool cmd_morse(target_s *t, int argc, const char **argv)
 	(void)t;
 	(void)argc;
 	(void)argv;
-	if (morse_msg) {
-		gdb_outf("%s\n", morse_msg);
-		DEBUG_WARN("%s\n", morse_msg);
-	} else
-		gdb_out("No message\n");
+	gdb_out("No message\n");
 	return true;
 }
 
@@ -470,7 +421,7 @@ static bool cmd_tdi_low_reset(target_s *t, int argc, const char **argv)
 	(void)t;
 	(void)argc;
 	(void)argv;
-	jtag_proc.jtagtap_next(true, false);
+	/* jtag_proc.jtagtap_next(true, false); */
 	cmd_reset(NULL, 0, NULL);
 	return true;
 }
@@ -658,7 +609,7 @@ static bool cmd_debug_bmp(target_s *t, int argc, const char **argv)
 }
 #endif
 
-#if PC_HOSTED == 1
+#if PC_HOSTED == 1 && MYIR_LINUX == 0
 static bool cmd_shutdown_bmda(target_s *t, int argc, const char **argv)
 {
 	(void)t;

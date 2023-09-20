@@ -160,7 +160,7 @@ bool adiv5_swd_scan(const uint32_t targetid)
 	dp->low_access = firmware_swdp_low_access;
 	dp->abort = firmware_swdp_abort;
 
-#if PC_HOSTED == 0
+#if PC_HOSTED == 0 || MYIR_LINUX == 1
 	swdptap_init();
 #else
 	if (!bmda_swd_dp_init(dp)) {

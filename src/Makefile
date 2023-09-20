@@ -13,6 +13,8 @@ endif
 
 CFLAGS += -Wall -Wextra -Werror -Wreturn-type \
 	-Wno-char-subscripts \
+	-Wno-unused-variable \
+	-Wno-unused-but-set-variable \
 	-std=c11 -g3 -MD -I./target \
 	-I. -Iinclude -I$(PLATFORM_DIR)
 
@@ -26,7 +28,6 @@ endif
 
 SRC =              \
 	adiv5.c        \
-	adiv5_jtag.c   \
 	adiv5_swd.c    \
 	command.c      \
 	cortexa.c      \
@@ -40,44 +41,13 @@ SRC =              \
 	gdb_packet.c   \
 	gdb_reg.c      \
 	hex_utils.c    \
-	hc32l110.c     \
-	imxrt.c        \
-	jtag_devs.c    \
-	jtag_scan.c    \
 	lmi.c          \
-	lpc_common.c   \
-	lpc11xx.c      \
-	lpc17xx.c      \
-	lpc15xx.c      \
-	lpc40xx.c      \
-	lpc43xx.c      \
-	lpc546xx.c     \
-	lpc55xx.c      \
-	kinetis.c      \
 	main.c         \
 	maths_utils.c  \
-	morse.c        \
-	msp432e4.c     \
-	msp432p4.c     \
-	nrf51.c        \
-	nxpke04.c      \
 	remote.c       \
-	rp.c           \
-	sam3x.c        \
-	sam4l.c        \
-	samd.c         \
-	samx5x.c       \
-	sfdp.c         \
-	spi.c          \
+	timing.c       \
 	stm32f1.c      \
 	ch32f1.c       \
-	stm32f4.c      \
-	stm32h5.c      \
-	stm32h7.c      \
-	stm32l0.c      \
-	stm32l4.c      \
-	stm32g0.c      \
-	renesas.c      \
 	target.c       \
 	target_flash.c \
 	target_probe.c
@@ -115,6 +85,7 @@ CFLAGS += -DMYIR_LINUX=1
 else
 CFLAGS += -DMYIR_LINUX=0
 endif
+include platforms/common/Makefile.inc
 else
 $(error oh no come on here)
 CFLAGS += -DPC_HOSTED=0

@@ -114,3 +114,8 @@ platforms/common/usb_types.h
 platforms/myir/platform.c
 platforms/myir/platform.h
 platforms/myir/usbdfu.c
+platforms/myir/debug.h
+platforms/myir/gdb_if.c
+include/gdb_if.h
+platforms/myir/debug.c
+platforms/myir/debug.h

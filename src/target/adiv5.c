@@ -459,6 +459,7 @@ static bool cortexm_prepare(adiv5_access_port_s *ap)
 {
 #if PC_HOSTED == 1 || ENABLE_DEBUG == 1
 	uint32_t start_time = platform_time_ms();
+	(void)start_time;
 #endif
 	uint32_t dhcsr = cortexm_initial_halt(ap);
 	if (!dhcsr) {
@@ -798,7 +799,7 @@ void adiv5_dp_init(adiv5_debug_port_s *const dp, const uint32_t idcode)
 	dp->ap_read = firmware_ap_read;
 	dp->mem_read = advi5_mem_read_bytes;
 	dp->mem_write = adiv5_mem_write_bytes;
-#if PC_HOSTED == 1
+#if PC_HOSTED == 1 && MYIR_LINUX == 0
 	bmda_adiv5_dp_init(dp);
 #endif
 
