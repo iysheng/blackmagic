@@ -742,6 +742,7 @@ adiv5_access_port_s *adiv5_new_ap(adiv5_debug_port_s *dp, uint8_t apsel)
 		adiv5_ap_map_type(ADIV5_AP_IDR_TYPE(ap->idr), ADIV5_AP_IDR_CLASS(ap->idr)) :
 		"UNKNOWN";
 	/* Display the AP's type, variant and revision information */
+	/* 打印读取的 dp 信息 */
 	DEBUG_INFO(" (%s var%" PRIx32 " rev%" PRIx32 ")\n", ap_type, ADIV5_AP_IDR_VARIANT(ap->idr),
 		ADIV5_AP_IDR_REVISION(ap->idr));
 #endif
@@ -812,6 +813,7 @@ void adiv5_dp_init(adiv5_debug_port_s *const dp, const uint32_t idcode)
 	 * for SWD-DP, we are guaranteed to be DP v1 or later.
 	 */
 	if (idcode != JTAG_IDCODE_ARM_DPv0) {
+		/* 读取到的 dpidr */
 		const uint32_t dpidr = adiv5_dp_read_dpidr(dp);
 		if (!dpidr) {
 			DEBUG_ERROR("Failed to read DPIDR\n");
@@ -843,6 +845,7 @@ void adiv5_dp_init(adiv5_debug_port_s *const dp, const uint32_t idcode)
 		 * Version 0 is reserved for DPv0 which does not implement DPIDR
 		 * Bit 0 of DPIDR is read as 1
 		 */
+		/* 打印读取到的 DPIDIDR 寄存器信息 */
 		if (dp->designer_code != 0 && dp->version > 0 && (dpidr & 1U)) {
 			DEBUG_INFO("DP DPIDR 0x%08" PRIx32 " (v%x %srev%" PRId32 ") designer 0x%x partno 0x%x\n", dpidr,
 				dp->version, dp->mindp ? "MINDP " : "",
@@ -903,7 +906,7 @@ void adiv5_dp_init(adiv5_debug_port_s *const dp, const uint32_t idcode)
 	while (true) {
 		ctrlstat = adiv5_dp_read(dp, ADIV5_DP_CTRLSTAT);
 		const uint32_t status = ctrlstat & (ADIV5_DP_CTRLSTAT_CSYSPWRUPACK | ADIV5_DP_CTRLSTAT_CDBGPWRUPACK);
-		//DEBUG_INFO("status %08" PRIx32 " (%08" PRIx32 ")\n", ctrlstat, status);
+		DEBUG_INFO("status %08" PRIx32 " (%08" PRIx32 ")\n", ctrlstat, status);
 		if (status == (ADIV5_DP_CTRLSTAT_CSYSPWRUPACK | ADIV5_DP_CTRLSTAT_CDBGPWRUPACK))
 			break;
 		if (platform_timeout_is_expired(&timeout)) {
@@ -922,6 +925,7 @@ void adiv5_dp_init(adiv5_debug_port_s *const dp, const uint32_t idcode)
 	/* Wait for acknowledge */
 	while (true) {
 		ctrlstat = adiv5_dp_read(dp, ADIV5_DP_CTRLSTAT);
+		DEBUG_INFO("ctrlstat %08" PRIx32 " (%08" PRIx32 ")\n", ctrlstat, ctrlstat & ADIV5_DP_CTRLSTAT_CDBGRSTACK);
 		if (ctrlstat & ADIV5_DP_CTRLSTAT_CDBGRSTACK) {
 			DEBUG_INFO("RESET_SEQ succeeded\n");
 			break;

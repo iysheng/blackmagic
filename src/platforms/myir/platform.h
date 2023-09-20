@@ -23,6 +23,9 @@
 #ifndef PLATFORMS_NATIVE_PLATFORM_H
 #define PLATFORMS_NATIVE_PLATFORM_H
 
+#include <sys/ioctl.h>
+#include <linux/gpio.h>
+
 #define PLATFORM_HAS_POWER_SWITCH
 
 #ifdef ENABLE_DEBUG
@@ -30,10 +33,15 @@
 extern bool debug_bmp;
 #endif
 
-#define gpio_set_val(x,y,z) (void)(x)
-#define gpio_set(x,y) (void)(x)
-#define gpio_get(x,y) (int)(x)
-#define gpio_clear(x,y) (void)(x)
+extern void myir_gpio_set(const uint32_t gpioport, const uint16_t gpios);
+extern void myir_gpio_clear(const uint32_t gpioport, const uint16_t gpios);
+extern void myir_gpio_set_val(const uint32_t gpioport, const uint16_t gpios, const bool val);
+extern uint16_t myir_gpio_get(const uint32_t gpioport, const uint16_t gpios);
+
+#define   gpio_set_val   myir_gpio_set_val
+#define   gpio_set       myir_gpio_set
+#define   gpio_get       myir_gpio_get
+#define   gpio_clear     myir_gpio_clear
 
 #define GPIOB (0)
 #define GPIOA (0)
@@ -110,7 +118,7 @@ extern bool running_status;
  */
 
 /* Hardware definitions... */
-#define JTAG_PORT    GPIOA
+#define JTAG_PORT    0
 #define TDI_PORT     JTAG_PORT
 #define TMS_DIR_PORT JTAG_PORT
 #define TMS_PORT     JTAG_PORT
@@ -119,8 +127,8 @@ extern bool running_status;
 #define TDO_PORT     JTAG_PORT
 #define TDI_PIN      HW_SWITCH(6, GPIO3, GPIO7)
 #define TMS_DIR_PIN  GPIO1
-#define TMS_PIN      GPIO4
-#define TCK_PIN      GPIO5
+#define TMS_PIN      232
+#define TCK_PIN      33
 #define TCK_DIR_PIN  GPIO15
 #define TDO_PIN      GPIO6
 
@@ -218,12 +226,16 @@ extern bool running_status;
 		gpio_set_mode(TMS_PORT, GPIO_MODE_OUTPUT_50_MHZ, GPIO_CNF_OUTPUT_PUSHPULL, TMS_PIN); \
 	} while (0)
 
+extern int swdio_mode_float(void);
 #define SWDIO_MODE_FLOAT()                        \
 	do {                                          \
+        swdio_mode_float(); \
 	} while (0)
 
+extern int swdio_mode_drive(void);
 #define SWDIO_MODE_DRIVE()                         \
 	do {                                           \
+		swdio_mode_drive(); \
 	} while (0)
 
 #define UART_PIN_SETUP()                                                                                        \

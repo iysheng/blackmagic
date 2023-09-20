@@ -28,6 +28,9 @@
 #include <termios.h>
 #include <unistd.h>
 #include <signal.h>
+#include <sys/ioctl.h>
+#include <linux/gpio.h>
+#include <unistd.h>
 
 #include "general.h"
 #include "platform.h"
@@ -205,6 +208,164 @@ static void sigterm_handler(int sig)
 	exit(0);
 }
 
+/* pins0 -> 33 -> swdio */
+/* pins1 -> 332 -> swclk */
+static struct gpiohandle_request swdp_pins[2];
+/* struct gpiohandle_config swdio_config; */
+
+uint16_t myir_gpio_get(const uint32_t gpioport, const uint16_t gpios)
+{
+	int ret = -1;
+	static struct gpiohandle_data data = {
+		.values[0] = 1,
+	};
+
+	if (SWCLK_PORT == gpioport && gpios == SWCLK_PIN)
+	{
+    	ret = ioctl(swdp_pins[1].fd, GPIOHANDLE_GET_LINE_VALUES_IOCTL, &data);
+	}
+	else if (SWDIO_PORT == gpioport && gpios == SWDIO_PIN)
+	{
+    	ret = ioctl(swdp_pins[0].fd, GPIOHANDLE_GET_LINE_VALUES_IOCTL, &data);
+	}
+
+	if (!ret)
+		return data.values[0];
+	else
+		return 1;
+}
+
+void myir_gpio_set(const uint32_t gpioport, const uint16_t gpios)
+{
+	int ret;
+	static struct gpiohandle_data data = {
+		.values[0] = 1,
+	};
+
+	if (SWCLK_PORT == gpioport && gpios == SWCLK_PIN)
+	{
+    	ret = ioctl(swdp_pins[1].fd, GPIOHANDLE_SET_LINE_VALUES_IOCTL, &data);
+	}
+	else if (SWDIO_PORT == gpioport && gpios == SWDIO_PIN)
+	{
+    	ret = ioctl(swdp_pins[0].fd, GPIOHANDLE_SET_LINE_VALUES_IOCTL, &data);
+	}
+	usleep(500);
+}
+
+void myir_gpio_clear(const uint32_t gpioport, const uint16_t gpios)
+{
+	int ret;
+	static struct gpiohandle_data data = {
+		.values[0] = 0,
+	};
+
+	if (SWCLK_PORT == gpioport && gpios == SWCLK_PIN)
+	{
+    	ret = ioctl(swdp_pins[1].fd, GPIOHANDLE_SET_LINE_VALUES_IOCTL, &data);
+	}
+	else if (SWDIO_PORT == gpioport && gpios == SWDIO_PIN)
+	{
+    	ret = ioctl(swdp_pins[0].fd, GPIOHANDLE_SET_LINE_VALUES_IOCTL, &data);
+	}
+	usleep(500);
+}
+
+void myir_gpio_set_val(const uint32_t gpioport, const uint16_t gpios, const bool val)
+{
+	int ret;
+	static struct gpiohandle_data data = {
+		.values[0] = 0,
+	};
+
+    if (val == true)
+		data.values[0] = 1;
+	else
+		data.values[0] = 0;
+
+	if (SWCLK_PORT == gpioport && gpios == SWCLK_PIN)
+	{
+    	ret = ioctl(swdp_pins[1].fd, GPIOHANDLE_SET_LINE_VALUES_IOCTL, &data);
+	}
+	else if (SWDIO_PORT == gpioport && gpios == SWDIO_PIN)
+	{
+    	ret = ioctl(swdp_pins[0].fd, GPIOHANDLE_SET_LINE_VALUES_IOCTL, &data);
+	}
+	usleep(500);
+}
+int swdio_mode_float(void)
+{
+	int ret;
+    static struct gpiohandle_config swdio_config = {
+		.flags = GPIOHANDLE_REQUEST_INPUT,
+	};
+
+    ret = ioctl(swdp_pins[0].fd, GPIOHANDLE_SET_CONFIG_IOCTL, &swdio_config);
+	usleep(500);
+    return ret;
+}
+
+int swdio_mode_drive(void)
+{
+	int ret;
+    static struct gpiohandle_config swdio_config = {
+		.flags = GPIOHANDLE_REQUEST_OUTPUT,
+	};
+
+    ret = ioctl(swdp_pins[0].fd, GPIOHANDLE_SET_CONFIG_IOCTL, &swdio_config);
+	usleep(500);
+
+	return ret;
+}
+
+int gpio_handler_init(void)
+{
+	struct gpiohandle_data data;
+	char chrdev_name[20];
+	int fd, ret;
+
+	strcpy(chrdev_name, "/dev/gpiochip0");
+
+	/*  Open device: gpiochip0 for GPIO bank A */
+	fd = open(chrdev_name, 0);
+	if (fd == -1) {
+		ret = -errno;
+		fprintf(stderr, "Failed to open %s\n", chrdev_name);
+
+		return ret;
+	}
+
+	swdp_pins[0].lineoffsets[0] = 33;
+	swdp_pins[0].flags = GPIOHANDLE_REQUEST_OUTPUT;
+	swdp_pins[0].lines = 1;
+	memcpy(swdp_pins[0].default_values, &data, sizeof(swdp_pins[0].default_values));
+	strcpy(swdp_pins[0].consumer_label, "swdio");
+
+	ret = ioctl(fd, GPIO_GET_LINEHANDLE_IOCTL, &swdp_pins[0]);
+	if (ret == -1) {
+		ret = -errno;
+		fprintf(stderr, "Failed to issue GET LINEHANDLE IOCTL (%d)\n",
+			ret);
+	}
+
+	swdp_pins[1].lineoffsets[0] = 322;
+	swdp_pins[1].flags = GPIOHANDLE_REQUEST_OUTPUT;
+	swdp_pins[1].lines = 1;
+	memcpy(swdp_pins[1].default_values, &data, sizeof(swdp_pins[1].default_values));
+	strcpy(swdp_pins[1].consumer_label, "swclk");
+	ret = ioctl(fd, GPIO_GET_LINEHANDLE_IOCTL, &swdp_pins[1]);
+	if (ret == -1) {
+		ret = -errno;
+		fprintf(stderr, "Failed to issue GET LINEHANDLE IOCTL (%d)\n",
+			ret);
+	}
+
+	if (close(fd) == -1)
+		perror("Failed to close GPIO character device file");
+
+	return ret;
+}
+
 void platform_init(int argc, char *argv[])
 {
 	(void)argc;
@@ -233,6 +394,11 @@ void platform_init(int argc, char *argv[])
 	{
 		DEBUG_ERROR("Oh no failed init attribs\n");
 		printf("red Oh no failed init attribs\n");
+	}
+
+    if (gpio_handler_init() < 0)
+	{
+		DEBUG_ERROR("Failed do swdp pins init\n");
 	}
 }
 
