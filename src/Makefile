@@ -82,6 +82,8 @@ $(info come on here)
 CFLAGS += -DPC_HOSTED=1
 ifdef MYIR_LINUX
 CFLAGS += -DMYIR_LINUX=1
+CFLAGS += -mtune=cortex-a55 -fstack-protector-strong  -D_FORTIFY_SOURCE=2 -Wformat -Wformat-security -Werror=format-security --sysroot=/home/red/Codes_of_pro/blackmagic4RZ/misc/SDK/MYD-YG2LX-20230417/03_Tools/Toolchains/sdk/core_red/sysroots/aarch64-poky-linux
+LDFLAGS += --sysroot=/home/red/Codes_of_pro/blackmagic4RZ/misc/SDK/MYD-YG2LX-20230417/03_Tools/Toolchains/sdk/core_red/sysroots/aarch64-poky-linux
 else
 CFLAGS += -DMYIR_LINUX=0
 endif

@@ -14,7 +14,7 @@ else ifeq ($(PROBE_HOST), myir)
 	MYIR_LINUX = true
 	NO_LIBOPENCM3 = true
 MFLAGS += 'PROBE_HOST = myir'
-MFLAGS += 'PC_HOSTED = true'
+MFLAGS += 'PC_HOSTED = 1'
 MFLAGS += 'MYIR_LINUX = true'
 endif
 
