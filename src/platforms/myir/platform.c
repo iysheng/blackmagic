@@ -31,11 +31,13 @@
 #include <sys/ioctl.h>
 #include <linux/gpio.h>
 #include <unistd.h>
+#include <time.h>
 
 #include "general.h"
 #include "platform.h"
 #include "morse.h"
 
+uint64_t time_ms;
 typedef struct timeval timeval_s;
 bool running_status = false;
 extern unsigned cortexm_wait_timeout;
@@ -85,6 +87,7 @@ int platform_hwversion(void)
 	return hwversion;
 }
 
+#define SWDIO_PINS_DELAY_US    15
 static bool set_interface_attribs(void)
 {
 	struct termios tty;
@@ -229,6 +232,8 @@ uint16_t myir_gpio_get(const uint32_t gpioport, const uint16_t gpios)
     	ret = ioctl(swdp_pins[0].fd, GPIOHANDLE_GET_LINE_VALUES_IOCTL, &data);
 	}
 
+	/* printf("ret=%d ans=%u@(%u, %u)\n", ret, data.values[0], gpioport, gpios); */
+
 	if (!ret)
 		return data.values[0];
 	else
@@ -250,7 +255,7 @@ void myir_gpio_set(const uint32_t gpioport, const uint16_t gpios)
 	{
     	ret = ioctl(swdp_pins[0].fd, GPIOHANDLE_SET_LINE_VALUES_IOCTL, &data);
 	}
-	usleep(500);
+	usleep(SWDIO_PINS_DELAY_US);
 }
 
 void myir_gpio_clear(const uint32_t gpioport, const uint16_t gpios)
@@ -268,7 +273,7 @@ void myir_gpio_clear(const uint32_t gpioport, const uint16_t gpios)
 	{
     	ret = ioctl(swdp_pins[0].fd, GPIOHANDLE_SET_LINE_VALUES_IOCTL, &data);
 	}
-	usleep(500);
+	usleep(SWDIO_PINS_DELAY_US);
 }
 
 void myir_gpio_set_val(const uint32_t gpioport, const uint16_t gpios, const bool val)
@@ -291,7 +296,7 @@ void myir_gpio_set_val(const uint32_t gpioport, const uint16_t gpios, const bool
 	{
     	ret = ioctl(swdp_pins[0].fd, GPIOHANDLE_SET_LINE_VALUES_IOCTL, &data);
 	}
-	usleep(500);
+	usleep(SWDIO_PINS_DELAY_US);
 }
 int swdio_mode_float(void)
 {
@@ -301,7 +306,7 @@ int swdio_mode_float(void)
 	};
 
     ret = ioctl(swdp_pins[0].fd, GPIOHANDLE_SET_CONFIG_IOCTL, &swdio_config);
-	usleep(500);
+	usleep(SWDIO_PINS_DELAY_US);
     return ret;
 }
 
@@ -313,7 +318,7 @@ int swdio_mode_drive(void)
 	};
 
     ret = ioctl(swdp_pins[0].fd, GPIOHANDLE_SET_CONFIG_IOCTL, &swdio_config);
-	usleep(500);
+	usleep(SWDIO_PINS_DELAY_US);
 
 	return ret;
 }
@@ -366,6 +371,42 @@ int gpio_handler_init(void)
 	return ret;
 }
 
+void handle(union sigval v){
+	(void)v;
+    time_ms++;
+    return;
+}
+
+int timer_init(void)
+{
+    struct sigevent evp;
+    struct itimerspec ts;
+    timer_t timer;
+    int ret;
+    memset   (&evp, 0, sizeof(evp));
+
+    evp.sigev_value.sival_ptr = &timer;
+    evp.sigev_notify = SIGEV_THREAD;
+    evp.sigev_notify_function = handle;
+    evp.sigev_value.sival_int = 3;   //作为handle()的参数
+    ret = timer_create(CLOCK_REALTIME, &evp, &timer);
+    if( ret){
+        perror("timer_create");
+    }
+
+    ts.it_value.tv_sec = 0;
+    ts.it_value.tv_nsec = 1000;
+    ts.it_interval.tv_sec = ts.it_value.tv_sec;
+    ts.it_interval.tv_nsec = ts.it_value.tv_nsec;
+    ret = timer_settime(timer, TIMER_ABSTIME, &ts, NULL);
+    if(ret)
+    {
+        perror("timer_settime");
+    }
+
+	return ret;
+}
+
 void platform_init(int argc, char *argv[])
 {
 	(void)argc;
@@ -400,6 +441,7 @@ void platform_init(int argc, char *argv[])
 	{
 		DEBUG_ERROR("Failed do swdp pins init\n");
 	}
+	timer_init();
 }
 
 void platform_nrst_set_val(bool assert)
@@ -454,7 +496,7 @@ void platform_pace_poll(void)
 
 uint32_t platform_time_ms(void)
 {
-	return 1;
+	return time_ms;
 }
 
 void platform_delay(uint32_t ms)

@@ -1,7 +1,7 @@
 PROBE_HOST ?= native
 PLATFORM_DIR = platforms/$(PROBE_HOST)
 VPATH += $(PLATFORM_DIR) target
-ENABLE_DEBUG ?=
+ENABLE_DEBUG ?= 1
 
 SYS = $(shell $(CC) -dumpmachine)
 
@@ -15,7 +15,7 @@ CFLAGS += -Wall -Wextra -Werror -Wreturn-type \
 	-Wno-char-subscripts \
 	-Wno-unused-variable \
 	-Wno-unused-but-set-variable \
-	-std=c11 -g3 -MD -I./target \
+	-g3 -MD -I./target \
 	-I. -Iinclude -I$(PLATFORM_DIR)
 
 ifeq (filter, macosx darwin, $(SYS))
@@ -84,6 +84,7 @@ ifdef MYIR_LINUX
 CFLAGS += -DMYIR_LINUX=1
 CFLAGS += -mtune=cortex-a55 -fstack-protector-strong  -D_FORTIFY_SOURCE=2 -Wformat -Wformat-security -Werror=format-security --sysroot=/home/red/Codes_of_pro/blackmagic4RZ/misc/SDK/MYD-YG2LX-20230417/03_Tools/Toolchains/sdk/core_red/sysroots/aarch64-poky-linux
 LDFLAGS += --sysroot=/home/red/Codes_of_pro/blackmagic4RZ/misc/SDK/MYD-YG2LX-20230417/03_Tools/Toolchains/sdk/core_red/sysroots/aarch64-poky-linux
+LDFLAGS += -lrt
 else
 CFLAGS += -DMYIR_LINUX=0
 endif
@@ -111,10 +112,14 @@ OBJ = $(patsubst %.S,%.o,$(patsubst %.c,%.o,$(SRC)))
 
 $(TARGET): include/version.h $(OBJ)
 	@echo "  LD      $@"
+	@echo $(LDFLAGS) "--red" $(OBJ)
 	$(Q)$(CC) -o $@ $(OBJ) $(LDFLAGS)
+	@aarch64-poky-linux-strip $@
+	@size $@
+	@cp -frv $@ /var/lib/tftpboot/myir/gadget_kos
 
 %.o:	%.c
-	@echo "  CC      $<"
+	@echo "  CC      $< "red"$(CFLAGS)"
 	$(Q)$(CC) $(CFLAGS) -c $< -o $@
 
 %.o:	%.S
