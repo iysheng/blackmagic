@@ -46,6 +46,16 @@ int fd;
 /* This is defined by the linker script */
 extern char vector_table;
 
+#define usleep(x) _delay_here()
+
+void _delay_here(void)
+{
+	__asm__("nop");
+	/* __asm__("nop"); */
+	/* __asm__("nop"); */
+	/* __asm__("nop"); */
+}
+
 /*
  * Starting with hardware version 4 we are storing the hardware version in the
  * flash option user Data1 byte.
