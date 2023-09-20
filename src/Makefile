@@ -15,6 +15,8 @@ endif
 
 CFLAGS += -Wall -Wextra -Werror -Wreturn-type \
 	-Wno-char-subscripts \
+	-Wno-unused-variable \
+	-Wno-unused-but-set-variable \
 	-std=c11 -g3 -MD -I./target \
 	-I. -Iinclude -I$(PLATFORM_DIR)
 
@@ -27,9 +29,7 @@ ENABLE_DEBUG := 1
 endif
 
 ifeq ($(ENABLE_DEBUG), 1)
-CFLAGS += -DENABLE_DEBUG=1
-else
-CFLAGS += -DENABLE_DEBUG=0
+CFLAGS += -DENABLE_DEBUG
 endif
 
 SRC =              \
@@ -143,6 +143,7 @@ LDFLAGS += --sysroot=/home/red/Codes_of_pro/blackmagic4RZ/misc/SDK/MYD-YG2LX-202
 else
 CFLAGS += -DMYIR_LINUX=0
 endif
+include platforms/common/Makefile.inc
 else
 $(error oh no come on here)
 CFLAGS += -DPC_HOSTED=0
