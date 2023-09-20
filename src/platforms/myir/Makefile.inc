@@ -5,8 +5,6 @@ CFLAGS += -DENABLE_DEBUG
 
 ifeq ($(ENABLE_DEBUG), 1)
 LDFLAGS += --specs=rdimon.specs
-else
-LDFLAGS += --specs=nosys.specs
 endif
 
 # VPATH += platforms/common/stm32
