@@ -48,12 +48,14 @@ static void swdptap_seq_out_parity(uint32_t tms_states, size_t clock_cycles) __a
 
 void swdptap_init(void)
 {
+	/* swd 底层接口关联 */
 	swd_proc.seq_in = swdptap_seq_in;
 	swd_proc.seq_in_parity = swdptap_seq_in_parity;
 	swd_proc.seq_out = swdptap_seq_out;
 	swd_proc.seq_out_parity = swdptap_seq_out_parity;
 }
 
+/* SWDIO 管脚状态控制 */
 static void swdptap_turnaround(const swdio_status_t dir)
 {
 	static swdio_status_t olddir = SWDIO_STATUS_FLOAT;

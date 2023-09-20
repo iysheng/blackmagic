@@ -37,7 +37,9 @@
 #include "cortex_internal.h"
 #include "exception.h"
 #if PC_HOSTED == 1
+#if MYIR_LINUX == 0 && BBB_LINUX == 0
 #include "bmp_hosted.h"
+#endif
 #endif
 
 /*
@@ -428,7 +430,7 @@ static uint32_t cortexm_initial_halt(adiv5_access_port_s *ap)
 		 * will do nothing (return 0) and instead need RDBUFF read to get the data.
 		 */
 		if (ap->dp->mindp
-#if PC_HOSTED == 1 && (MYIR_LINUX == 0 || BBB_LINUX == 0)
+#if PC_HOSTED == 1 && MYIR_LINUX == 0 & BBB_LINUX == 0
 			&& bmda_probe_info.type != PROBE_TYPE_CMSIS_DAP
 #endif
 		)
@@ -1004,6 +1006,8 @@ void adiv5_dp_init(adiv5_debug_port_s *const dp)
 	}
 	adiv5_dp_unref(dp);
 }
+
+#define ALIGNOF(x) (((x)&3U) == 0 ? ALIGN_WORD : (((x)&1U) == 0 ? ALIGN_HALFWORD : ALIGN_BYTE))
 
 /* Program the CSW and TAR for sequential access at a given width */
 void ap_mem_access_setup(adiv5_access_port_s *ap, uint32_t addr, align_e align)
