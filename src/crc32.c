@@ -25,10 +25,6 @@
 #if !defined(STM32F0) && !defined(STM32F1) && !defined(STM32F2) && !defined(STM32F3) && !defined(STM32F4) && \
 	!defined(STM32F7) && !defined(STM32L0) && !defined(STM32L1) && !defined(STM32G0) && !defined(STM32G4)
 
-#define debug_warning(...) printf("red")
-#define debug_error(...) printf("green")
-#define debug_info(...) printf("blue")
-
 /* clang-format off */
 static const uint32_t crc32_table[] = {
 	0x00000000, 0x04c11db7, 0x09823b6e, 0x0d4326d9,

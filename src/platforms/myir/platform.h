@@ -30,10 +30,6 @@
 extern bool debug_bmp;
 #endif
 
-#define debug_warning(...) printf("red")
-#define debug_error(...) printf("green")
-#define debug_info(...) printf("blue")
-
 #define gpio_set_val(x,y,z) (void)(x)
 #define gpio_set(x,y) (void)(x)
 #define gpio_get(x,y) (int)(x)
