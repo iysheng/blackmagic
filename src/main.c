@@ -67,6 +67,7 @@ static void bmp_poll_loop(void)
 
 	/* 开始没有绑定 target 时候要走到这里 */
 	SET_IDLE_STATE(true);
+	/* 读取 gdb 报文 */
 	size_t size = gdb_getpacket(pbuf, GDB_PACKET_BUFFER_SIZE);
 	// If port closed and target detached, stay idle
 	if (pbuf[0] != '\x04' || cur_target)

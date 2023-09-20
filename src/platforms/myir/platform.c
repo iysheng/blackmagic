@@ -20,11 +20,23 @@
 
 /* This file implements the platform specific functions for the native implementation. */
 
+#include <sys/stat.h>
+#include <sys/select.h>
+#include <dirent.h>
+#include <fcntl.h>
+#include <errno.h>
+#include <termios.h>
+#include <unistd.h>
+#include <signal.h>
+
 #include "general.h"
 #include "platform.h"
 #include "morse.h"
 
+typedef struct timeval timeval_s;
 bool running_status = false;
+extern unsigned cortexm_wait_timeout;
+int fd;
 
 /* This is defined by the linker script */
 extern char vector_table;
@@ -70,10 +82,159 @@ int platform_hwversion(void)
 	return hwversion;
 }
 
+static bool set_interface_attribs(void)
+{
+	struct termios tty;
+	memset(&tty, 0, sizeof tty);
+	if (tcgetattr(fd, &tty) != 0) {
+		DEBUG_ERROR("error %d from tcgetattr", errno);
+		return false;
+	}
+
+	tty.c_cflag = (tty.c_cflag & ~CSIZE) | CS8; // 8-bit chars
+	// disable IGNBRK for mismatched speed tests; otherwise receive break
+	// as \000 chars
+	tty.c_iflag &= ~IGNBRK; // disable break processing
+	tty.c_lflag = 0;        // no signaling chars, no echo,
+	// no canonical processing
+	tty.c_oflag = 0;     // no remapping, no delays
+	tty.c_cc[VMIN] = 0;  // read doesn't block
+	tty.c_cc[VTIME] = 5; // 0.5 seconds read timeout
+
+	tty.c_iflag &= ~(IXON | IXOFF | IXANY); // shut off xon/xoff ctrl
+
+	tty.c_cflag |= (CLOCAL | CREAD); // ignore modem controls,
+	// enable reading
+	tty.c_cflag &= ~CSTOPB;
+#if defined(CRTSCTS)
+	tty.c_cflag &= ~CRTSCTS;
+#endif
+	if (tcsetattr(fd, TCSANOW, &tty) != 0) {
+		DEBUG_ERROR("error %d from tcsetattr", errno);
+		return false;
+	}
+	return true;
+}
+
+int platform_buffer_write(const void *const data, const size_t length)
+{
+	DEBUG_WIRE("%s\n", (const char *)data);
+	const ssize_t written = write(fd, data, length);
+	if (written < 0) {
+		const int error = errno;
+		DEBUG_ERROR("Failed to write (%d): %s\n", errno, strerror(error));
+		exit(-2);
+	}
+	else
+	{
+		tcdrain(fd);
+	}
+	return (size_t)written == length;
+}
+
+/* XXX: We should either return size_t or bool */
+/* XXX: This needs documenting that it can abort the program with exit(), or the error handling fixed */
+int platform_buffer_read(void *const data, size_t length)
+{
+	char response = 0;
+	timeval_s timeout = {
+		.tv_sec = cortexm_wait_timeout / 1000U,
+		.tv_usec = 1000U * (cortexm_wait_timeout % 1000U),
+	};
+
+	/* Now collect the response */
+	for (size_t offset = 0; offset < length;) {
+		fd_set select_set;
+		FD_ZERO(&select_set);
+		FD_SET(fd, &select_set);
+		const int result = select(FD_SETSIZE, &select_set, NULL, NULL, &timeout);
+		if (result < 0) {
+			DEBUG_ERROR("Failed on select\n");
+			exit(-4);
+		}
+		if (result == 0) {
+			DEBUG_ERROR("Timeout on read\n");
+			return -5;
+		}
+		if (read(fd, data + offset, 1) != 1) {
+			const int error = errno;
+			DEBUG_ERROR("Failed to read response (%d): %s\n", error, strerror(error));
+			return -6;
+		}
+		++offset;
+	}
+
+	return length;
+}
+
+int platform_buffer_read_extend(void *const data, size_t length, uint32_t ms)
+{
+	char response = 0;
+	timeval_s timeout;
+	timeout.tv_sec = ms / 1000U;
+	timeout.tv_usec = 1000U * (ms % 1000U);
+
+	/* Now collect the response */
+	for (size_t offset = 0; offset < length;) {
+		fd_set select_set;
+		FD_ZERO(&select_set);
+		FD_SET(fd, &select_set);
+		const int result = select(FD_SETSIZE, &select_set, NULL, NULL, &timeout);
+		if (result < 0) {
+			DEBUG_ERROR("Failed on select\n");
+			exit(-4);
+		}
+		if (result == 0) {
+			DEBUG_ERROR("Timeout on read\n");
+			return -5;
+		}
+		if (read(fd, data + offset, 1) != 1) {
+			const int error = errno;
+			DEBUG_ERROR("Failed to read response (%d): %s\n", error, strerror(error));
+			return -6;
+		}
+		++offset;
+	}
+
+	return length;
+}
+
+static void sigterm_handler(int sig)
+{
+	(void)sig;
+	exit(0);
+}
+
 void platform_init(int argc, char *argv[])
 {
 	(void)argc;
 	(void)argv;
+
+	printf("plaform init here\n");
+	signal(SIGTERM, sigterm_handler);
+	signal(SIGINT, sigterm_handler);
+
+	if (argc > 1)
+	{
+    	fd = open(argv[1], O_RDWR | O_SYNC | O_NOCTTY);
+	}
+	else
+	{
+    	fd = open("/dev/ttyBMP0", O_RDWR | O_SYNC | O_NOCTTY);
+	}
+    DEBUG_ERROR("wow test printf");
+	if (fd < 0) {
+		DEBUG_ERROR("Couldn't open serial port %s\n", name);
+		return;
+	}
+	/* BMP only offers an USB-Serial connection with no real serial
+	 * line in between. No need for baudrate or parity.!
+	 */
+	if (false == set_interface_attribs())
+	{
+		DEBUG_ERROR("Oh no failed init attribs\n");
+		printf("red Oh no failed init attribs\n");
+	}
 }
 
 void platform_nrst_set_val(bool assert)

@@ -36,19 +36,35 @@ static __attribute__ ((unused)) uint32_t out_ptr;
 static __attribute__ ((unused)) char buffer_out[CDCACM_PACKET_SIZE];
 static __attribute__ ((unused)) char buffer_in[CDCACM_PACKET_SIZE];
 
+#define GDB_BUFFER_LEN 2048U
+static size_t gdb_buffer_used = 0U;
+static char gdb_buffer[GDB_BUFFER_LEN];
+
 void gdb_if_putchar(const char c, const int flush)
 {
-	(void)c;
-	(void)flush;
+	gdb_buffer[gdb_buffer_used++] = c;
+	if (flush || gdb_buffer_used == GDB_BUFFER_LEN) {
+		platform_buffer_write(gdb_buffer, gdb_buffer_used);
+		gdb_buffer_used = 0;
+	}
 }
 
 char gdb_if_getchar(void)
 {
-	return buffer_out[out_ptr++];
+	char data;
+	if (platform_buffer_read(&data, 1) == 1)
+		return data;
+	return 0XFF;
 }
 
 char gdb_if_getchar_to(const uint32_t timeout)
 {
-	(void)timeout;
-	return -1;
+	char data;
+
+    if (1 == platform_buffer_read_extend(&data, 1, timeout))
+	{
+		return data;
+	}
+
+	return 0XFF;
 }
