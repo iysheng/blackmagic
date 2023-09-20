@@ -35,7 +35,7 @@
 #include "general.h"
 #include "debug.h"
 
-uint16_t bmda_debug_flags = BMD_DEBUG_ERROR | BMD_DEBUG_WARNING;
+uint16_t bmda_debug_flags = 0XFF ;//BMD_DEBUG_ERROR | BMD_DEBUG_WARNING;
 
 static void debug_print(const uint16_t level, const char *format, va_list args)
 {
