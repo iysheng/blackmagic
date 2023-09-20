@@ -3,10 +3,6 @@ CC = $(CROSS_COMPILE)gcc
 
 CFLAGS += -DENABLE_DEBUG
 
-ifeq ($(ENABLE_DEBUG), 1)
-LDFLAGS += --specs=rdimon.specs
-endif
-
 # VPATH += platforms/common/stm32
 
 SRC +=               \

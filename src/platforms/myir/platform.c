@@ -222,9 +222,8 @@ void platform_init(int argc, char *argv[])
 	{
     	fd = open("/dev/ttyBMP0", O_RDWR | O_SYNC | O_NOCTTY);
 	}
-    DEBUG_ERROR("wow test printf");
 	if (fd < 0) {
-		DEBUG_ERROR("Couldn't open serial port %s\n", name);
+		DEBUG_ERROR("Couldn't open serial port %s\n", argc > 1 ? argv[1] : "/dev/ttyBMP0");
 		return;
 	}
 	/* BMP only offers an USB-Serial connection with no real serial
@@ -260,7 +259,7 @@ bool platform_target_set_power(const bool power)
 
 uint32_t platform_target_voltage_sense(void)
 {
-	return 123;
+	return 32;
 }
 
 const char *platform_target_voltage(void)
