@@ -224,9 +224,17 @@
 #define SWDP_ACK_FAULT       0x04U
 #define SWDP_ACK_NO_RESPONSE 0x07U
 
+typedef enum align {
+	ALIGN_BYTE = 0,
+	ALIGN_HALFWORD = 1,
+	ALIGN_WORD = 2,
+	ALIGN_DWORD = 3
+} align_e;
+
 typedef struct adiv5_access_port adiv5_access_port_s;
 typedef struct adiv5_debug_port adiv5_debug_port_s;
 
+/* Try to keep this somewhat absract for later adding SW-DP */
 struct adiv5_debug_port {
 	int refcnt;
 
@@ -239,6 +247,8 @@ struct adiv5_debug_port {
 	void (*abort)(adiv5_debug_port_s *dp, uint32_t abort);
 
 #if PC_HOSTED == 1
+	bool (*ap_setup)(uint8_t i);
+	void (*ap_cleanup)(uint8_t i);
 	void (*ap_regs_read)(adiv5_access_port_s *ap, void *data);
 	uint32_t (*ap_reg_read)(adiv5_access_port_s *ap, uint8_t reg_num);
 	void (*ap_reg_write)(adiv5_access_port_s *ap, uint8_t num, uint32_t value);

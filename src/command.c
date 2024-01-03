@@ -111,7 +111,7 @@ const command_s cmd_list[] = {
 #if defined(PLATFORM_HAS_DEBUG) && PC_HOSTED == 0
 	{"debug_bmp", cmd_debug_bmp, "Output BMP \"debug\" strings to the second vcom: [enable|disable]"},
 #endif
-#if PC_HOSTED == 1
+#if PC_HOSTED == 1 && MYIR_LINUX == 0 && BBB_LINUX == 0
 	{"shutdown_bmda", cmd_shutdown_bmda, "Tell the BMDA server to shut down when the GDB connection closes"},
 #endif
 	{NULL, NULL, NULL},
@@ -165,7 +165,7 @@ bool cmd_version(target_s *t, int argc, const char **argv)
 	(void)t;
 	(void)argc;
 	(void)argv;
-#if PC_HOSTED == 1 && MYIR_LINUX == 0
+#if PC_HOSTED == 1 && MYIR_LINUX == 0 && BBB_LINUX == 0
 	char ident[256];
 	gdb_ident(ident, sizeof(ident));
 	DEBUG_WARN("%s\n", ident);

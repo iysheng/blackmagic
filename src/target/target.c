@@ -251,7 +251,7 @@ void target_detach(target_s *target)
 		target->detach(target);
 	platform_target_clk_output_enable(false);
 	target->attached = false;
-#if PC_HOSTED == 1 && MYIR_LINUX == 0
+#if PC_HOSTED == 1 && MYIR_LINUX == 0 && BBB_LINUX == 0
 	platform_buffer_flush();
 #endif
 }

@@ -87,7 +87,7 @@ bool jtag_scan(void)
 	 * any SWD/JTAG DPs in the chain
 	 */
 	DEBUG_INFO("Resetting TAP\n");
-#if PC_HOSTED == 1 && MYIR_LINUX == 0
+#if PC_HOSTED == 1 && MYIR_LINUX == 0 && BBB_LINUX == 0
 	if (!bmda_jtag_init()) {
 		DEBUG_ERROR("JTAG not available\n");
 		return false;
@@ -121,7 +121,7 @@ bool jtag_scan(void)
 		postscan += jtag_devs[idx].ir_len;
 	}
 
-#if PC_HOSTED == 1
+#if PC_HOSTED == 1 && MYIR_LINUX == 0 && BBB_LINUX == 0
 	/*Transfer needed device information to firmware jtag_devs */
 	for (size_t device = 0; device < jtag_dev_count; ++device)
 		bmda_add_jtag_dev(device, jtag_devs + device);

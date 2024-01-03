@@ -430,8 +430,8 @@ static uint32_t cortexm_initial_halt(adiv5_access_port_s *ap)
 		 * will do nothing (return 0) and instead need RDBUFF read to get the data.
 		 */
 		if (ap->dp->mindp
-#if PC_HOSTED == 1 && MYIR_LINUX == 0 & BBB_LINUX == 0
-			&& bmda_probe_info.type != PROBE_TYPE_CMSIS_DAP
+#if PC_HOSTED == 1 && MYIR_LINUX == 0 && BBB_LINUX == 0
+			&& info.bmp_type != PROBE_TYPE_CMSIS_DAP
 #endif
 		)
 			dhcsr = adiv5_dp_low_access(ap->dp, ADIV5_LOW_READ, ADIV5_DP_RDBUFF, 0);
@@ -763,6 +763,7 @@ adiv5_access_port_s *adiv5_new_ap(adiv5_debug_port_s *dp, uint8_t apsel)
 		adiv5_arm_ap_type_string(ADIV5_AP_IDR_TYPE(ap->idr), ADIV5_AP_IDR_CLASS(ap->idr)) :
 		"Unknown";
 	/* Display the AP's type, variant and revision information */
+	/* 打印读取的 dp 信息 */
 	DEBUG_INFO(" (%s var%" PRIx32 " rev%" PRIx32 ")\n", ap_type, ADIV5_AP_IDR_VARIANT(ap->idr),
 		ADIV5_AP_IDR_REVISION(ap->idr));
 #endif
@@ -863,6 +864,7 @@ void adiv5_dp_init(adiv5_debug_port_s *const dp)
 		 * Version 0 is reserved for DPv0 which does not implement DPIDR
 		 * Bit 0 of DPIDR is read as 1
 		 */
+		/* 打印读取到的 DPIDIDR 寄存器信息 */
 		if (dp->designer_code != 0 && dp->version > 0 && (dpidr & 1U)) {
 			DEBUG_INFO("DP DPIDR 0x%08" PRIx32 " (v%x %srev%" PRIu32 ") designer 0x%x partno 0x%x\n", dpidr,
 				dp->version, dp->mindp ? "MINDP " : "",

@@ -22,4 +22,5 @@ VPATH += platforms/common
 CFLAGS += -Iplatforms/common
 
 SRC +=             \
-	swdptap.c      
+	swdptap.c \
+	jtagtap.c

@@ -51,7 +51,7 @@ void adiv5_jtag_dp_handler(const uint8_t dev_index)
 	dp->error = adiv5_jtagdp_error;
 	dp->low_access = fw_adiv5_jtagdp_low_access;
 	dp->abort = adiv5_jtagdp_abort;
-#if PC_HOSTED == 1
+#if PC_HOSTED == 1 && BBB_LINUX == 0
 	bmda_jtag_dp_init(dp);
 #endif
 
