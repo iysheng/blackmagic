@@ -53,6 +53,15 @@ extern bool running_status;
 #define PLATFORM_IDENT   ""
 #define UPD_IFACE_STRING "@Internal Flash   /0x08000000/8*001Kg"
 
+typedef enum {
+    BBB_SWDIO_PIN_HANDLER, /* TMS */
+    BBB_SWCLK_PIN_HANDLER, /* TCLK */
+    BBB_TMSDIR_PIN_HANDLER,
+    BBB_TDO_PIN_HANDLER,
+    BBB_TDI_PIN_HANDLER,
+    BBB_MAX_PIN_HANDLER,
+} bbb_pins_handler_E;
+
 /*
  * Hardware version switcher helper - when the hardware
  * version is smaller than ver it outputs opt1, otherwise opt2
@@ -125,14 +134,13 @@ extern bool running_status;
 #define TMS_DIR_PORT JTAG_PORT
 #define TMS_PORT     JTAG_PORT
 #define TCK_PORT     JTAG_PORT
-#define TCK_DIR_PORT GPIOC
 #define TDO_PORT     JTAG_PORT
+
 #define TDI_PIN      88
 #define TMS_DIR_PIN  77
-#define TMS_PIN      232
-#define TCK_PIN      33
-#define TCK_DIR_PIN  GPIO15
-#define TDO_PIN      90
+#define TMS_PIN      87
+#define TCK_PIN      86
+#define TDO_PIN      89
 
  // SWD 相关管脚定义
 #define SWDIO_DIR_PORT JTAG_PORT

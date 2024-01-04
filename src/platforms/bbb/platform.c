@@ -223,7 +223,7 @@ static void sigterm_handler(int sig)
 
 /* pins0 -> 33 -> swdio */
 /* pins1 -> 332 -> swclk */
-static struct gpiohandle_request swdp_pins[2];
+static struct gpiohandle_request gs_bbb_jtag_pins[BBB_MAX_PIN_HANDLER];
 /* struct gpiohandle_config swdio_config; */
 
 uint16_t myir_gpio_get(const uint32_t gpioport, const uint16_t gpios)
@@ -235,11 +235,11 @@ uint16_t myir_gpio_get(const uint32_t gpioport, const uint16_t gpios)
 
 	if (SWCLK_PORT == gpioport && gpios == SWCLK_PIN)
 	{
-    	ret = ioctl(swdp_pins[1].fd, GPIOHANDLE_GET_LINE_VALUES_IOCTL, &data);
+    	ret = ioctl(gs_bbb_jtag_pins[1].fd, GPIOHANDLE_GET_LINE_VALUES_IOCTL, &data);
 	}
 	else if (SWDIO_PORT == gpioport && gpios == SWDIO_PIN)
 	{
-    	ret = ioctl(swdp_pins[0].fd, GPIOHANDLE_GET_LINE_VALUES_IOCTL, &data);
+    	ret = ioctl(gs_bbb_jtag_pins[0].fd, GPIOHANDLE_GET_LINE_VALUES_IOCTL, &data);
 	}
 
 	/* printf("ret=%d ans=%u@(%u, %u)\n", ret, data.values[0], gpioport, gpios); */
@@ -259,11 +259,11 @@ void myir_gpio_set(const uint32_t gpioport, const uint16_t gpios)
 
 	if (SWCLK_PORT == gpioport && gpios == SWCLK_PIN)
 	{
-    	ret = ioctl(swdp_pins[1].fd, GPIOHANDLE_SET_LINE_VALUES_IOCTL, &data);
+    	ret = ioctl(gs_bbb_jtag_pins[1].fd, GPIOHANDLE_SET_LINE_VALUES_IOCTL, &data);
 	}
 	else if (SWDIO_PORT == gpioport && gpios == SWDIO_PIN)
 	{
-    	ret = ioctl(swdp_pins[0].fd, GPIOHANDLE_SET_LINE_VALUES_IOCTL, &data);
+    	ret = ioctl(gs_bbb_jtag_pins[0].fd, GPIOHANDLE_SET_LINE_VALUES_IOCTL, &data);
 	}
 	usleep(SWDIO_PINS_DELAY_US);
 }
@@ -277,11 +277,11 @@ void myir_gpio_clear(const uint32_t gpioport, const uint16_t gpios)
 
 	if (SWCLK_PORT == gpioport && gpios == SWCLK_PIN)
 	{
-    	ret = ioctl(swdp_pins[1].fd, GPIOHANDLE_SET_LINE_VALUES_IOCTL, &data);
+    	ret = ioctl(gs_bbb_jtag_pins[1].fd, GPIOHANDLE_SET_LINE_VALUES_IOCTL, &data);
 	}
 	else if (SWDIO_PORT == gpioport && gpios == SWDIO_PIN)
 	{
-    	ret = ioctl(swdp_pins[0].fd, GPIOHANDLE_SET_LINE_VALUES_IOCTL, &data);
+    	ret = ioctl(gs_bbb_jtag_pins[0].fd, GPIOHANDLE_SET_LINE_VALUES_IOCTL, &data);
 	}
 	usleep(SWDIO_PINS_DELAY_US);
 }
@@ -300,11 +300,11 @@ void myir_gpio_set_val(const uint32_t gpioport, const uint16_t gpios, const bool
 
 	if (SWCLK_PORT == gpioport && gpios == SWCLK_PIN)
 	{
-    	ret = ioctl(swdp_pins[1].fd, GPIOHANDLE_SET_LINE_VALUES_IOCTL, &data);
+    	ret = ioctl(gs_bbb_jtag_pins[1].fd, GPIOHANDLE_SET_LINE_VALUES_IOCTL, &data);
 	}
 	else if (SWDIO_PORT == gpioport && gpios == SWDIO_PIN)
 	{
-    	ret = ioctl(swdp_pins[0].fd, GPIOHANDLE_SET_LINE_VALUES_IOCTL, &data);
+    	ret = ioctl(gs_bbb_jtag_pins[0].fd, GPIOHANDLE_SET_LINE_VALUES_IOCTL, &data);
 	}
 	usleep(SWDIO_PINS_DELAY_US);
 }
@@ -324,7 +324,7 @@ int swdio_mode_float(void)
 		.flags = GPIOHANDLE_REQUEST_INPUT,
 	};
 
-    ret = ioctl(swdp_pins[0].fd, GPIOHANDLE_SET_CONFIG_IOCTL, &swdio_config);
+    ret = ioctl(gs_bbb_jtag_pins[0].fd, GPIOHANDLE_SET_CONFIG_IOCTL, &swdio_config);
 	usleep(SWDIO_PINS_DELAY_US);
     return ret;
 }
@@ -336,7 +336,7 @@ int swdio_mode_drive(void)
 		.flags = GPIOHANDLE_REQUEST_OUTPUT,
 	};
 
-    ret = ioctl(swdp_pins[0].fd, GPIOHANDLE_SET_CONFIG_IOCTL, &swdio_config);
+    ret = ioctl(gs_bbb_jtag_pins[0].fd, GPIOHANDLE_SET_CONFIG_IOCTL, &swdio_config);
 	usleep(SWDIO_PINS_DELAY_US);
 
 	return ret;
@@ -359,25 +359,37 @@ int gpio_handler_init(void)
 		return ret;
 	}
 
-	swdp_pins[0].lineoffsets[0] = 33;
-	swdp_pins[0].flags = GPIOHANDLE_REQUEST_OUTPUT;
-	swdp_pins[0].lines = 1;
-	memcpy(swdp_pins[0].default_values, &data, sizeof(swdp_pins[0].default_values));
-	strcpy(swdp_pins[0].consumer_label, "swdio");
+	gs_bbb_jtag_pins[BBB_SWDIO_PIN_HANDLER].lineoffsets[0] = TMS_PIN;
+	gs_bbb_jtag_pins[BBB_SWDIO_PIN_HANDLER].flags = GPIOHANDLE_REQUEST_OUTPUT;
+	gs_bbb_jtag_pins[BBB_SWDIO_PIN_HANDLER].lines = 1;
+	memcpy(gs_bbb_jtag_pins[BBB_SWDIO_PIN_HANDLER].default_values, &data, sizeof(gs_bbb_jtag_pins[BBB_SWDIO_PIN_HANDLER].default_values));
+	strcpy(gs_bbb_jtag_pins[BBB_SWDIO_PIN_HANDLER].consumer_label, "swdio");
 
-	ret = ioctl(fd, GPIO_GET_LINEHANDLE_IOCTL, &swdp_pins[0]);
+	ret = ioctl(fd, GPIO_GET_LINEHANDLE_IOCTL, &gs_bbb_jtag_pins[BBB_SWDIO_PIN_HANDLER]);
 	if (ret == -1) {
 		ret = -errno;
 		fprintf(stderr, "Failed to issue GET LINEHANDLE IOCTL (%d)\n",
 			ret);
 	}
 
-	swdp_pins[1].lineoffsets[0] = 322;
-	swdp_pins[1].flags = GPIOHANDLE_REQUEST_OUTPUT;
-	swdp_pins[1].lines = 1;
-	memcpy(swdp_pins[1].default_values, &data, sizeof(swdp_pins[1].default_values));
-	strcpy(swdp_pins[1].consumer_label, "swclk");
-	ret = ioctl(fd, GPIO_GET_LINEHANDLE_IOCTL, &swdp_pins[1]);
+	gs_bbb_jtag_pins[BBB_SWCLK_PIN_HANDLER].lineoffsets[0] = TCK_PIN;
+	gs_bbb_jtag_pins[BBB_SWCLK_PIN_HANDLER].flags = GPIOHANDLE_REQUEST_OUTPUT;
+	gs_bbb_jtag_pins[BBB_SWCLK_PIN_HANDLER].lines = 1;
+	memcpy(gs_bbb_jtag_pins[BBB_SWCLK_PIN_HANDLER].default_values, &data, sizeof(gs_bbb_jtag_pins[BBB_SWCLK_PIN_HANDLER].default_values));
+	strcpy(gs_bbb_jtag_pins[BBB_SWCLK_PIN_HANDLER].consumer_label, "swclk");
+	ret = ioctl(fd, GPIO_GET_LINEHANDLE_IOCTL, &gs_bbb_jtag_pins[BBB_SWCLK_PIN_HANDLER]);
+	if (ret == -1) {
+		ret = -errno;
+		fprintf(stderr, "Failed to issue GET LINEHANDLE IOCTL (%d)\n",
+			ret);
+	}
+
+	gs_bbb_jtag_pins[BBB_TMSDIR_PIN_HANDLER].lineoffsets[0] = TMS_DIR_PIN;
+	gs_bbb_jtag_pins[BBB_TMSDIR_PIN_HANDLER].flags = GPIOHANDLE_REQUEST_OUTPUT;
+	gs_bbb_jtag_pins[BBB_TMSDIR_PIN_HANDLER].lines = 1;
+	memcpy(gs_bbb_jtag_pins[BBB_TMSDIR_PIN_HANDLER].default_values, &data, sizeof(gs_bbb_jtag_pins[BBB_TMSDIR_PIN_HANDLER].default_values));
+	strcpy(gs_bbb_jtag_pins[BBB_TMSDIR_PIN_HANDLER].consumer_label, "tmsdir");
+	ret = ioctl(fd, GPIO_GET_LINEHANDLE_IOCTL, &gs_bbb_jtag_pins[BBB_TMSDIR_PIN_HANDLER]);
 	if (ret == -1) {
 		ret = -errno;
 		fprintf(stderr, "Failed to issue GET LINEHANDLE IOCTL (%d)\n",
