@@ -98,7 +98,7 @@ int main(int argc, char **argv)
 			target_list_free();
 			gdb_outf("Uncaught exception: %s\n", e.msg);
 		}
-#if PC_HOSTED == 1 && MYIR_LINUX == 0
+#if PC_HOSTED == 1 && MYIR_LINUX == 0 && BBB_LINUX == 0
 		if (shutdown_bmda)
 			break;
 #endif
