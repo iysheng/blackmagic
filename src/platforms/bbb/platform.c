@@ -323,8 +323,20 @@ int swdio_mode_float(void)
     static struct gpiohandle_config swdio_config = {
 		.flags = GPIOHANDLE_REQUEST_INPUT,
 	};
+	static struct gpiohandle_data tms_dir_data = {
+		.values[0] = 0,
+	};
 
+    ret = ioctl(gs_bbb_jtag_pins[BBB_TMSDIR_PIN_HANDLER].fd, GPIOHANDLE_SET_LINE_VALUES_IOCTL, &tms_dir_data);
+	if (ret)
+	{
+		fprintf(stderr, "Failed to set tms_dir line value:%d\n", ret);
+	}
     ret = ioctl(gs_bbb_jtag_pins[BBB_SWDIO_PIN_HANDLER].fd, GPIOHANDLE_SET_CONFIG_IOCTL, &swdio_config);
+	if (ret)
+	{
+		fprintf(stderr, "Failed to set swdio config:%d\n", ret);
+	}
 	usleep(SWDIO_PINS_DELAY_US);
     return ret;
 }
@@ -335,8 +347,20 @@ int swdio_mode_drive(void)
     static struct gpiohandle_config swdio_config = {
 		.flags = GPIOHANDLE_REQUEST_OUTPUT,
 	};
+	static struct gpiohandle_data tms_dir_data = {
+		.values[0] = 1,
+	};
 
+    ret = ioctl(gs_bbb_jtag_pins[BBB_TMSDIR_PIN_HANDLER].fd, GPIOHANDLE_SET_LINE_VALUES_IOCTL, &tms_dir_data);
+	if (ret)
+	{
+		fprintf(stderr, "Failed to set tms_dir line value:%d\n", ret);
+	}
     ret = ioctl(gs_bbb_jtag_pins[BBB_SWDIO_PIN_HANDLER].fd, GPIOHANDLE_SET_CONFIG_IOCTL, &swdio_config);
+	if (ret)
+	{
+		fprintf(stderr, "Failed to set swdio config:%d\n", ret);
+	}
 	usleep(SWDIO_PINS_DELAY_US);
 
 	return ret;

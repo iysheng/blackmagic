@@ -72,6 +72,7 @@ static bool cmd_rtt(target_s *t, int argc, const char **argv);
 #if defined(PLATFORM_HAS_DEBUG) && PC_HOSTED == 0
 static bool cmd_debug_bmp(target_s *t, int argc, const char **argv);
 #endif
+
 #if PC_HOSTED == 1 && MYIR_LINUX == 0 && BBB_LINUX == 0
 static bool cmd_shutdown_bmda(target_s *t, int argc, const char **argv);
 #endif
