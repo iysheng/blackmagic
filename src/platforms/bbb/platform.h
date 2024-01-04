@@ -33,17 +33,17 @@
 extern bool debug_bmp;
 #endif
 
-extern void myir_gpio_set(const uint32_t gpioport, const uint16_t gpios);
-extern void myir_gpio_clear(const uint32_t gpioport, const uint16_t gpios);
-extern void myir_gpio_set_val(const uint32_t gpioport, const uint16_t gpios, const bool val);
-extern uint16_t myir_gpio_get(const uint32_t gpioport, const uint16_t gpios);
-extern void myir_gpio_set_mode(int port, int mode, int pullpush, int pin);
+extern void bbb_gpio_set(const uint32_t gpioport, const uint16_t gpios);
+extern void bbb_gpio_clear(const uint32_t gpioport, const uint16_t gpios);
+extern void bbb_gpio_set_val(const uint32_t gpioport, const uint16_t gpios, const bool val);
+extern uint16_t bbb_gpio_get(const uint32_t gpioport, const uint16_t gpios);
+extern void bbb_gpio_set_mode(int port, int mode, int pullpush, int pin);
 
-#define   gpio_set_val   myir_gpio_set_val
-#define   gpio_set       myir_gpio_set
-#define   gpio_get       myir_gpio_get
-#define   gpio_clear     myir_gpio_clear
-#define   gpio_set_mode  myir_gpio_set_mode
+#define   gpio_set_val   bbb_gpio_set_val
+#define   gpio_set       bbb_gpio_set
+#define   gpio_get       bbb_gpio_get
+#define   gpio_clear     bbb_gpio_clear
+#define   gpio_set_mode  bbb_gpio_set_mode
 
 #define GPIOB (0)
 #define GPIOA (0)

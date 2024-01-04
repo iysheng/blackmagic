@@ -226,7 +226,7 @@ static void sigterm_handler(int sig)
 static struct gpiohandle_request gs_bbb_jtag_pins[BBB_MAX_PIN_HANDLER];
 /* struct gpiohandle_config swdio_config; */
 
-uint16_t myir_gpio_get(const uint32_t gpioport, const uint16_t gpios)
+uint16_t bbb_gpio_get(const uint32_t gpioport, const uint16_t gpios)
 {
 	int ret = -1;
 	static struct gpiohandle_data data = {
@@ -250,7 +250,7 @@ uint16_t myir_gpio_get(const uint32_t gpioport, const uint16_t gpios)
 		return 1;
 }
 
-void myir_gpio_set(const uint32_t gpioport, const uint16_t gpios)
+void bbb_gpio_set(const uint32_t gpioport, const uint16_t gpios)
 {
 	int ret;
 	static struct gpiohandle_data data = {
@@ -268,7 +268,7 @@ void myir_gpio_set(const uint32_t gpioport, const uint16_t gpios)
 	usleep(SWDIO_PINS_DELAY_US);
 }
 
-void myir_gpio_clear(const uint32_t gpioport, const uint16_t gpios)
+void bbb_gpio_clear(const uint32_t gpioport, const uint16_t gpios)
 {
 	int ret;
 	static struct gpiohandle_data data = {
@@ -286,7 +286,7 @@ void myir_gpio_clear(const uint32_t gpioport, const uint16_t gpios)
 	usleep(SWDIO_PINS_DELAY_US);
 }
 
-void myir_gpio_set_val(const uint32_t gpioport, const uint16_t gpios, const bool val)
+void bbb_gpio_set_val(const uint32_t gpioport, const uint16_t gpios, const bool val)
 {
 	int ret;
 	static struct gpiohandle_data data = {
@@ -309,7 +309,7 @@ void myir_gpio_set_val(const uint32_t gpioport, const uint16_t gpios, const bool
 	usleep(SWDIO_PINS_DELAY_US);
 }
 
-void myir_gpio_set_mode(int port, int mode, int pullpush, int pin)
+void bbb_gpio_set_mode(int port, int mode, int pullpush, int pin)
 {
 	(void)port;
 	(void)mode;
