@@ -50,7 +50,7 @@ extern void myir_gpio_set_mode(int port, int mode, int pullpush, int pin);
 
 extern bool running_status;
 
-#define PLATFORM_IDENT   ""
+#define PLATFORM_IDENT   "BBB"
 #define UPD_IFACE_STRING "@Internal Flash   /0x08000000/8*001Kg"
 
 typedef enum {
