@@ -34,6 +34,7 @@
 #endif
 
 typedef enum swdio_status_e {
+	/* DRIVE 是输出模式， FLOAT 是输入模式 ??? */
 	SWDIO_STATUS_FLOAT = 0,
 	SWDIO_STATUS_DRIVE
 } swdio_status_t;
@@ -48,14 +49,17 @@ static void swdptap_seq_out_parity(uint32_t tms_states, size_t clock_cycles) __a
 
 void swdptap_init(void)
 {
-	/* swd 底层接口关联 */
+	/* 在这里关联了 swd 底层接口关联 */
 	swd_proc.seq_in = swdptap_seq_in;
 	swd_proc.seq_in_parity = swdptap_seq_in_parity;
 	swd_proc.seq_out = swdptap_seq_out;
 	swd_proc.seq_out_parity = swdptap_seq_out_parity;
 }
 
-/* SWDIO 管脚状态控制 */
+/* SWDIO 管脚状态控制
+ *
+ * turnaround 翻转控制 swdio
+ * */
 static void swdptap_turnaround(const swdio_status_t dir)
 {
 	static swdio_status_t olddir = SWDIO_STATUS_FLOAT;
@@ -121,6 +125,7 @@ static uint32_t swdptap_seq_in_no_delay(const size_t clock_cycles)
 
 static uint32_t swdptap_seq_in(size_t clock_cycles)
 {
+	/* 修改 swdio 为浮空输入 */
 	swdptap_turnaround(SWDIO_STATUS_FLOAT);
 	if (target_clk_divider != UINT32_MAX)
 		return swdptap_seq_in_clk_delay(clock_cycles);

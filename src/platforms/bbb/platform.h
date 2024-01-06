@@ -136,11 +136,11 @@ typedef enum {
 #define TCK_PORT     JTAG_PORT
 #define TDO_PORT     JTAG_PORT
 
-#define TDI_PIN      88
-#define TMS_DIR_PIN  77
-#define TMS_PIN      87
-#define TCK_PIN      86
-#define TDO_PIN      89
+#define TDI_PIN      24 /* gpiochp2 */
+#define TMS_DIR_PIN  13 /* gpiochp2 */
+#define TMS_PIN      23 /* gpiochp2 */
+#define TCK_PIN      22 /* gpiochp2 */
+#define TDO_PIN      25 /* gpiochp2 */
 
  // SWD 相关管脚定义
 #define SWDIO_DIR_PORT JTAG_PORT

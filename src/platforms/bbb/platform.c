@@ -369,19 +369,21 @@ int swdio_mode_drive(void)
 int gpio_handler_init(void)
 {
 	struct gpiohandle_data data;
-	char chrdev_name[20];
-	int fd, ret;
+	char chrdev_name[4][20];
+	int fd[4], ret;
+	int i;
 
-	strcpy(chrdev_name, "/dev/gpiochip0");
-
-	/*  Open device: gpiochip0 for GPIO bank A */
-	fd = open(chrdev_name, 0);
-	if (fd == -1) {
-		ret = -errno;
-		fprintf(stderr, "Failed to open %s\n", chrdev_name);
-
-		return ret;
+	for (i = 0; i < 4; i++)
+	{
+    	snprintf(chrdev_name[i], 20, "/dev/gpiochip%d", i);
+		fd[i] = open(chrdev_name[i], 0);
+    	if (fd[i] == -1) {
+    		ret = -errno;
+    		fprintf(stderr, "Failed to open %s\n", chrdev_name[i]);
+    		return ret;
+    	}
 	}
+
 
 	gs_bbb_jtag_pins[BBB_SWDIO_PIN_HANDLER].lineoffsets[0] = TMS_PIN;
 	gs_bbb_jtag_pins[BBB_SWDIO_PIN_HANDLER].flags = GPIOHANDLE_REQUEST_OUTPUT;
@@ -389,7 +391,7 @@ int gpio_handler_init(void)
 	memcpy(gs_bbb_jtag_pins[BBB_SWDIO_PIN_HANDLER].default_values, &data, sizeof(gs_bbb_jtag_pins[BBB_SWDIO_PIN_HANDLER].default_values));
 	strcpy(gs_bbb_jtag_pins[BBB_SWDIO_PIN_HANDLER].consumer_label, "swdio");
 
-	ret = ioctl(fd, GPIO_GET_LINEHANDLE_IOCTL, &gs_bbb_jtag_pins[BBB_SWDIO_PIN_HANDLER]);
+	ret = ioctl(fd[2], GPIO_GET_LINEHANDLE_IOCTL, &gs_bbb_jtag_pins[BBB_SWDIO_PIN_HANDLER]);
 	if (ret == -1) {
 		ret = -errno;
 		fprintf(stderr, "Failed to issue GET LINEHANDLE IOCTL (%d)\n",
@@ -401,7 +403,7 @@ int gpio_handler_init(void)
 	gs_bbb_jtag_pins[BBB_SWCLK_PIN_HANDLER].lines = 1;
 	memcpy(gs_bbb_jtag_pins[BBB_SWCLK_PIN_HANDLER].default_values, &data, sizeof(gs_bbb_jtag_pins[BBB_SWCLK_PIN_HANDLER].default_values));
 	strcpy(gs_bbb_jtag_pins[BBB_SWCLK_PIN_HANDLER].consumer_label, "swclk");
-	ret = ioctl(fd, GPIO_GET_LINEHANDLE_IOCTL, &gs_bbb_jtag_pins[BBB_SWCLK_PIN_HANDLER]);
+	ret = ioctl(fd[2], GPIO_GET_LINEHANDLE_IOCTL, &gs_bbb_jtag_pins[BBB_SWCLK_PIN_HANDLER]);
 	if (ret == -1) {
 		ret = -errno;
 		fprintf(stderr, "Failed to issue GET LINEHANDLE IOCTL (%d)\n",
@@ -413,15 +415,16 @@ int gpio_handler_init(void)
 	gs_bbb_jtag_pins[BBB_TMSDIR_PIN_HANDLER].lines = 1;
 	memcpy(gs_bbb_jtag_pins[BBB_TMSDIR_PIN_HANDLER].default_values, &data, sizeof(gs_bbb_jtag_pins[BBB_TMSDIR_PIN_HANDLER].default_values));
 	strcpy(gs_bbb_jtag_pins[BBB_TMSDIR_PIN_HANDLER].consumer_label, "tmsdir");
-	ret = ioctl(fd, GPIO_GET_LINEHANDLE_IOCTL, &gs_bbb_jtag_pins[BBB_TMSDIR_PIN_HANDLER]);
+	ret = ioctl(fd[2], GPIO_GET_LINEHANDLE_IOCTL, &gs_bbb_jtag_pins[BBB_TMSDIR_PIN_HANDLER]);
 	if (ret == -1) {
 		ret = -errno;
 		fprintf(stderr, "Failed to issue GET LINEHANDLE IOCTL (%d)\n",
 			ret);
 	}
 
-	if (close(fd) == -1)
-		perror("Failed to close GPIO character device file");
+	for (i = 0; i < 4; i++)
+    	if (close(fd[i]) == -1)
+    		perror("Failed to close GPIO character device file");
 
 	return ret;
 }
@@ -477,7 +480,7 @@ void platform_init(int argc, char *argv[])
 	}
 	else
 	{
-    	fd = open("/dev/ttyBMP0", O_RDWR | O_SYNC | O_NOCTTY);
+    	fd = open("/dev/ttyGS0", O_RDWR | O_SYNC | O_NOCTTY);
 	}
 	if (fd < 0) {
 		DEBUG_ERROR("Couldn't open serial port %s\n", argc > 1 ? argv[1] : "/dev/ttyBMP0");
