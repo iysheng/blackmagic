@@ -169,7 +169,7 @@ int platform_buffer_read(void *const data, size_t length)
 			exit(-4);
 		}
 		if (result == 0) {
-			DEBUG_ERROR("Timeout on read\n");
+			/* DEBUG_ERROR("Timeout on read\n"); */
 			return -5;
 		}
 		if (read(fd, data + offset, 1) != 1) {
