@@ -422,6 +422,17 @@ int gpio_handler_init(void)
 			ret);
 	}
 
+	gs_bbb_jtag_pins[BBB_PWR_BR_PIN_HANDLER].lineoffsets[0] = PWR_BR_PIN;
+	gs_bbb_jtag_pins[BBB_PWR_BR_PIN_HANDLER].flags = GPIOHANDLE_REQUEST_OUTPUT;
+	gs_bbb_jtag_pins[BBB_PWR_BR_PIN_HANDLER].lines = 1;
+	memcpy(gs_bbb_jtag_pins[BBB_PWR_BR_PIN_HANDLER].default_values, &data, sizeof(gs_bbb_jtag_pins[BBB_PWR_BR_PIN_HANDLER].default_values));
+	strcpy(gs_bbb_jtag_pins[BBB_PWR_BR_PIN_HANDLER].consumer_label, "pwrbr");
+	ret = ioctl(fd[2], GPIO_GET_LINEHANDLE_IOCTL, &gs_bbb_jtag_pins[BBB_PWR_BR_PIN_HANDLER]);
+	if (ret == -1) {
+		ret = -errno;
+		fprintf(stderr, "Failed to issue GET LINEHANDLE IOCTL (%d)\n",
+			ret);
+	}
 	for (i = 0; i < 4; i++)
     	if (close(fd[i]) == -1)
     		perror("Failed to close GPIO character device file");

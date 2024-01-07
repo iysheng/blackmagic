@@ -59,6 +59,7 @@ typedef enum {
     BBB_TMSDIR_PIN_HANDLER,
     BBB_TDO_PIN_HANDLER,
     BBB_TDI_PIN_HANDLER,
+    BBB_PWR_BR_PIN_HANDLER, /* TPWR 供电使能管脚 */
     BBB_MAX_PIN_HANDLER,
 } bbb_pins_handler_E;
 
@@ -163,7 +164,7 @@ typedef enum {
  * TPWR is sensed via PB0 by sampling ADC1's channel 8.
  */
 #define PWR_BR_PORT GPIOB
-#define PWR_BR_PIN  76
+#define PWR_BR_PIN   12 /* gpiochp2 */
 #define TPWR_PORT   GPIOB
 #define TPWR_PIN    GPIO0
 
