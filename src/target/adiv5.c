@@ -415,8 +415,13 @@ static uint32_t cortexm_initial_halt(adiv5_access_port_s *ap)
 		/* If we're not on a minimal DP implementation, use TRNCNT to help */
 		if (!ap->dp->mindp) {
 			/* Ask the AP to repeatedly retry the write to DHCSR */
+					/* 一步一步调试发现注释这里可以正常识别，不知道为什么，否则会提示
+					 * SWD access has invalid ack 5 **
+					 * */
+#if BBB_LINUX == 0
 			adiv5_dp_low_access(
 				ap->dp, ADIV5_LOW_WRITE, ADIV5_DP_CTRLSTAT, ctrlstat | ADIV5_DP_CTRLSTAT_TRNCNT(0xfffU));
+#endif
 		}
 		/* Repeatedly try to halt the processor */
 		adiv5_dp_low_access(ap->dp, ADIV5_LOW_WRITE, ADIV5_AP_DRW,
