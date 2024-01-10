@@ -653,7 +653,7 @@ static bool stm32f1_flash_erase(target_flash_s *flash, target_addr_t addr, size_
 {
 	target_s *target = flash->t;
 	target_addr_t end = addr + length - 1U;
-	DEBUG_TARGET("%s: at %08" PRIx32 "\n", __func__, addr);
+	/* DEBUG_TARGET("%s: at %08" PRIx32 "\n", __func__, addr); */
 
 	/* Unlocked an appropriate flash bank */
 	if ((stm32f1_is_dual_bank(target->part_id) && end >= FLASH_BANK_SPLIT &&

@@ -135,8 +135,8 @@ static bool set_interface_attribs(void)
 
 int platform_buffer_write(const void *const data, const size_t length)
 {
-	DEBUG_WIRE("%s\n", (const char *)data);
 	const ssize_t written = write(fd, data, length);
+	DEBUG_WARN("%s@%u@%u\n", (const char *)data, length, written);
 	if (written < 0) {
 		const int error = errno;
 		DEBUG_ERROR("Failed to write (%d): %s\n", errno, strerror(error));
@@ -155,22 +155,21 @@ int platform_buffer_read(void *const data, size_t length)
 {
 	char response = 0;
 	timeval_s timeout = {
-		.tv_sec = cortexm_wait_timeout / 1000U,
+		.tv_sec = 10000000U,
 		.tv_usec = 1000U * (cortexm_wait_timeout % 1000U),
 	};
 
-	/* Now collect the response */
 	for (size_t offset = 0; offset < length;) {
 		fd_set select_set;
 		FD_ZERO(&select_set);
 		FD_SET(fd, &select_set);
-		const int result = select(FD_SETSIZE, &select_set, NULL, NULL, &timeout);
+		const int result = select(fd + 1, &select_set, NULL, NULL, &timeout);
 		if (result < 0) {
 			DEBUG_ERROR("Failed on select\n");
 			exit(-4);
 		}
 		if (result == 0) {
-			/* DEBUG_ERROR("Timeout on read\n"); */
+			DEBUG_ERROR("Timeout on read\n");
 			return -5;
 		}
 		if (read(fd, data + offset, 1) != 1) {

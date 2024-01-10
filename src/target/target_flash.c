@@ -247,6 +247,7 @@ static bool flash_buffered_write(target_flash_s *flash, target_addr_t dest, cons
 
 bool target_flash_write(target_s *target, target_addr_t dest, const void *src, size_t len)
 {
+	DEBUG_ERROR("red dbg %s %d\n", __func__, __LINE__);
 	if (!target_enter_flash_mode(target))
 		return false;
 
