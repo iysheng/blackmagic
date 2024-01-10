@@ -51,10 +51,14 @@ void gdb_if_putchar(const char c, const int flush)
 
 char gdb_if_getchar(void)
 {
-	char data;
+	char data = '\0';
 	if (platform_buffer_read(&data, 1) == 1)
+	{
+		DEBUG_ERROR("get data here %s %d %c=%x\n", __func__, __LINE__, data, data);
 		return data;
-	return 0XFF;
+	}
+	DEBUG_ERROR("should not come here %s %d\n", __func__, __LINE__);
+	return '+';
 }
 
 char gdb_if_getchar_to(const uint32_t timeout)
