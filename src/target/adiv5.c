@@ -826,7 +826,7 @@ void adiv5_dp_init(adiv5_debug_port_s *const dp)
 	dp->ap_read = firmware_ap_read;
 	dp->mem_read = advi5_mem_read_bytes;
 	dp->mem_write = adiv5_mem_write_bytes;
-#if PC_HOSTED == 1 && MYIR_LINUX == 0
+#if PC_HOSTED == 1 && MYIR_LINUX == 0 && BBB_LINUX == 0
 	bmda_adiv5_dp_init(dp);
 #endif
 

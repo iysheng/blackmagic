@@ -78,6 +78,7 @@ SRC =              \
 	sam4l.c        \
 	samd.c         \
 	samx5x.c       \
+	timing.c \
 	sfdp.c         \
 	spi.c          \
 	stm32f1.c      \

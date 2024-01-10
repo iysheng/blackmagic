@@ -588,12 +588,6 @@ void platform_delay(uint32_t ms)
 	(void)ms;
 }
 
-void morse(const char *msg, bool repeat)
-{
-    (void)msg;
-	(void)repeat;
-}
-
 /* 设置最大速率 */
 void platform_max_frequency_set(uint32_t freq)
 {

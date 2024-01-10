@@ -33,6 +33,8 @@
 #define SWDIO_IN_PIN SWDIO_PIN
 #endif
 
+uint32_t target_clk_divider = 10;
+
 typedef enum swdio_status_e {
 	/* DRIVE 是输出模式， FLOAT 是输入模式 ??? */
 	SWDIO_STATUS_FLOAT = 0,
