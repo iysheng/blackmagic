@@ -42,6 +42,7 @@ typedef struct timeval timeval_s;
 bool running_status = false;
 extern unsigned cortexm_wait_timeout;
 int fd;
+static unsigned int gs_voltage_sense = 0x00;
 
 /* This is defined by the linker script */
 extern char vector_table;
@@ -321,7 +322,7 @@ int swdio_mode_float(void)
 {
 	int ret;
     static struct gpiohandle_config swdio_config = {
-		.flags = GPIOHANDLE_REQUEST_INPUT,
+		.flags = GPIOHANDLE_REQUEST_INPUT | GPIOHANDLE_REQUEST_BIAS_DISABLE,
 	};
 	static struct gpiohandle_data tms_dir_data = {
 		.values[0] = 0,
@@ -464,7 +465,7 @@ int timer_init(void)
     }
 
     ts.it_value.tv_sec = 0;
-    ts.it_value.tv_nsec = 1000;
+    ts.it_value.tv_nsec = 1000000;
     ts.it_interval.tv_sec = ts.it_value.tv_sec;
     ts.it_interval.tv_nsec = ts.it_value.tv_nsec;
     ret = timer_settime(timer, TIMER_ABSTIME, &ts, NULL);
@@ -530,13 +531,27 @@ bool platform_target_get_power(void)
 
 bool platform_target_set_power(const bool power)
 {
-	(void)power;
+	int ret;
+	struct gpiohandle_data data = {
+		.values[0] = 1,
+	};
+	if (power == true)
+	{
+		data.values[0] = 0;
+        gs_voltage_sense = 32;
+	}
+	else
+	{
+        gs_voltage_sense = 0;
+	}
+
+    ret = ioctl(gs_bbb_jtag_pins[BBB_PWR_BR_PIN_HANDLER].fd, GPIOHANDLE_SET_LINE_VALUES_IOCTL, &data);
 	return true;
 }
 
 uint32_t platform_target_voltage_sense(void)
 {
-	return 32;
+	return gs_voltage_sense;
 }
 
 const char *platform_target_voltage(void)
