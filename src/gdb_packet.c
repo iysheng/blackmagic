@@ -117,8 +117,6 @@ packet_state_e consume_remote_packet(char *const packet, const size_t size)
 #endif
 }
 
-// vFlashWrite:addr:XX... 写数据 XX 到指定的 addr flash 地址
-// XX 是 binary data
 size_t gdb_getpacket(char *const packet, const size_t size)
 {
 	packet_state_e state = PACKET_IDLE; /* State of the packet capture */
@@ -130,7 +128,6 @@ size_t gdb_getpacket(char *const packet, const size_t size)
 	while (true) {
 		const char rx_char = gdb_if_getchar();
 
-		DEBUG_WARN("state=%d %s %d %c=%x checksum=%x\n",state, __func__, __LINE__, rx_char, rx_char, checksum);
 		switch (state) {
 		case PACKET_IDLE:
 			packet[0U] = rx_char;
@@ -140,7 +137,7 @@ size_t gdb_getpacket(char *const packet, const size_t size)
 				offset = 0;
 				checksum = 0;
 			}
-#if PC_HOSTED == 0 || BBB_LINUX == 1
+#if PC_HOSTED == 0
 			else if (rx_char == REMOTE_SOM) {
 				/* Start of BMP remote packet */
 				/*
@@ -206,7 +203,6 @@ size_t gdb_getpacket(char *const packet, const size_t size)
 			break;
 
 		case PACKET_GDB_CHECKSUM_LOWER:
-			DEBUG_GDB("%s@%d noackmode=%d: ", __func__, __LINE__, noackmode);
 			/* Checksum lower nibble */
 			if (!noackmode) {
 				/* As per GDB spec, checksums can be ignored in NoAckMode */
@@ -214,7 +210,6 @@ size_t gdb_getpacket(char *const packet, const size_t size)
 
 				/* (N)Acknowledge packet */
 				gdb_if_putchar(rx_checksum == checksum ? GDB_PACKET_ACK : GDB_PACKET_NACK, 1U);
-				DEBUG_GDB("%s@%d rx_checksum=%x checksum=%x offset=%d noackmode=%d: ", __func__, __LINE__, rx_checksum, checksum, offset, noackmode);
 			}
 
 			if (noackmode || rx_checksum == checksum) {
@@ -222,7 +217,7 @@ size_t gdb_getpacket(char *const packet, const size_t size)
 				packet[offset] = '\0';
 
 				/* Log packet for debugging */
-				DEBUG_GDB("%s@%d: ", __func__, __LINE__);
+				DEBUG_GDB("%s: ", __func__);
 				for (size_t j = 0; j < offset; j++) {
 					const char value = packet[j];
 					if (value >= ' ' && value < '\x7f')
@@ -289,7 +284,6 @@ void gdb_putpacket2(const char *const packet1, const size_t size1, const char *c
 		gdb_if_putchar(xmit_csum[0], 0);
 		gdb_if_putchar(xmit_csum[1], 1);
 		DEBUG_GDB("\n");
-		DEBUG_GDB("RED2\n");
 	} while (!noackmode && gdb_if_getchar_to(2000) != GDB_PACKET_ACK && tries++ < 3U);
 }
 
@@ -299,7 +293,7 @@ void gdb_putpacket(const char *const packet, const size_t size)
 	size_t tries = 0;
 
 	do {
-		DEBUG_GDB("%s@%u: ", __func__, size);
+		DEBUG_GDB("%s: ", __func__);
 		uint8_t csum = 0;
 		gdb_if_putchar(GDB_PACKET_START, 0);
 		for (size_t i = 0; i < size; ++i)
@@ -308,7 +302,7 @@ void gdb_putpacket(const char *const packet, const size_t size)
 		snprintf(xmit_csum, sizeof(xmit_csum), "%02X", csum);
 		gdb_if_putchar(xmit_csum[0], 0);
 		gdb_if_putchar(xmit_csum[1], 1);
-		DEBUG_GDB("RED\n");
+		DEBUG_GDB("\n");
 	} while (!noackmode && gdb_if_getchar_to(2000) != GDB_PACKET_ACK && tries++ < 3U);
 }
 
@@ -337,7 +331,6 @@ void gdb_putpacket_f(const char *const fmt, ...)
 	const int size = vasprintf(&buf, fmt, ap);
 	if (size > 0)
 		gdb_putpacket(buf, size);
-	DEBUG_GDB("RED3\n");
 	free(buf);
 	va_end(ap);
 }

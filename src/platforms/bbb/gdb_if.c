@@ -54,7 +54,7 @@ char gdb_if_getchar(void)
 	char data = '\0';
 	if (platform_buffer_read(&data, 1) == 1)
 	{
-		DEBUG_ERROR("get data here %s %d %c=%x\n", __func__, __LINE__, data, data);
+		/* DEBUG_ERROR("get data here %s %d %c=%x\n", __func__, __LINE__, data, data); */
 		return data;
 	}
 	DEBUG_ERROR("should not come here %s %d\n", __func__, __LINE__);

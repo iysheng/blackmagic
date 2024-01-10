@@ -157,7 +157,7 @@ int platform_buffer_read(void *const data, size_t length)
 {
 	char response = 0;
 	timeval_s timeout = {
-		.tv_sec = 10000000U,
+		.tv_sec = cortexm_wait_timeout,
 		.tv_usec = 1000U * (cortexm_wait_timeout % 1000U),
 	};
 
@@ -171,7 +171,7 @@ int platform_buffer_read(void *const data, size_t length)
 			exit(-4);
 		}
 		if (result == 0) {
-			DEBUG_ERROR("Timeout on read\n");
+			DEBUG_INFO("Timeout on read\n");
 			return -5;
 		}
 		if (read(fd, data + offset, 1) != 1) {
