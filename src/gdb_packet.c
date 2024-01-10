@@ -117,6 +117,8 @@ packet_state_e consume_remote_packet(char *const packet, const size_t size)
 #endif
 }
 
+// vFlashWrite:addr:XX... 写数据 XX 到指定的 addr flash 地址
+// XX 是 binary data
 size_t gdb_getpacket(char *const packet, const size_t size)
 {
 	packet_state_e state = PACKET_IDLE; /* State of the packet capture */

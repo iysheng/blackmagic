@@ -112,6 +112,8 @@ static bool set_interface_attribs(void)
 	// disable IGNBRK for mismatched speed tests; otherwise receive break
 	// as \000 chars
 	tty.c_iflag &= ~IGNBRK; // disable break processing
+	tty.c_iflag &= ~ICRNL; // 取消 0d -> 0a 转换
+	tty.c_iflag &= ~IXON;
 	tty.c_lflag = 0;        // no signaling chars, no echo,
 	// no canonical processing
 	tty.c_oflag = 0;     // no remapping, no delays
