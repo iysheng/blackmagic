@@ -4,7 +4,7 @@ Q := @
 endif
 
 PC_HOSTED =
-PROBE_HOST ?= bbb
+PROBE_HOST ?= rpi_zerow
 NO_LIBOPENCM3 =
 ifeq ($(PROBE_HOST), hosted)
 	PC_HOSTED = true
@@ -21,6 +21,13 @@ else ifeq ($(PROBE_HOST), bbb)
 	BBB_LINUX = true
 	NO_LIBOPENCM3 = true
 MFLAGS += 'PROBE_HOST = bbb'
+MFLAGS += 'PC_HOSTED = 1'
+MFLAGS += 'BBB_LINUX = true'
+else ifeq ($(PROBE_HOST), rpi_zerow)
+	PC_HOSTED = true
+	BBB_LINUX = true
+	NO_LIBOPENCM3 = true
+MFLAGS += 'PROBE_HOST = rpi_zerow'
 MFLAGS += 'PC_HOSTED = 1'
 MFLAGS += 'BBB_LINUX = true'
 endif

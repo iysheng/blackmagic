@@ -146,7 +146,7 @@ LDFLAGS += -lrt
 else ifdef BBB_LINUX
 CFLAGS += -DBBB_LINUX=1
 CFLAGS += -fstack-protector-strong  -D_FORTIFY_SOURCE=2 -Wformat -Wformat-security -Werror=format-security
-LDFLAGS += -lrt
+LDFLAGS += -lrt -lpthread -lc
 endif
 include platforms/common/Makefile.inc
 else

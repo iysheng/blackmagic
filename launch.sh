@@ -3,13 +3,8 @@
 
 function env_init
 {
-export TI_SDK_PATH=/home/red/Projects/bbb_debuger/tiiiiiiiiiiii
-export LINUX_DEVKIT_PATH=${TI_SDK_PATH}/linux-devkit
-export SDK_PATH_TARGET=${LINUX_DEVKIT_PATH}/sysroots/armv7at2hf-neon-oe-linux-gnueabi/
-export CROSS_COMPILE=${TI_SDK_PATH}/external-toolchain-dir/arm-gnu-toolchain-11.3.rel1-x86_64-arm-none-linux-gnueabihf/bin/arm-none-linux-gnueabihf-
-export CC="${CROSS_COMPILE}gcc --sysroot=${SDK_PATH_TARGET}"
-export INSTALL_MOD_STRIP=1
-export DESTDIR=install_ko
+export CROSS_COMPILE=/home/red/.local/x-tools/armv6-rpi-linux-gnueabihf/bin/armv6-rpi-linux-gnueabihf-
+export CC="${CROSS_COMPILE}gcc"
 }
 
 if [ $# -gt 0 ];then
