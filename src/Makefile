@@ -176,9 +176,7 @@ $(TARGET): include/version.h $(OBJ)
 	@echo "  LD      $@"
 	@echo $(LDFLAGS) "--red" $(OBJ)
 	$(Q)$(CC) -o $@ $(OBJ) $(LDFLAGS)
-	@aarch64-poky-linux-strip $@
 	@size $@
-	@cp -frv $@ /var/lib/tftpboot/myir/gadget_kos
 
 %.o:	%.c
 	@echo "  CC      $<"
