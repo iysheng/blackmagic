@@ -99,7 +99,7 @@ int platform_hwversion(void)
 }
 
 #define SWDIO_PINS_DELAY_US    15
-static bool set_interface_attribs(void)
+static __attribute__((unused)) bool set_interface_attribs(void)
 {
 	struct termios tty;
 	memset(&tty, 0, sizeof tty);
@@ -470,7 +470,7 @@ int timer_init(void)
     ts.it_interval.tv_sec = ts.it_value.tv_sec;
     ts.it_interval.tv_nsec = ts.it_value.tv_nsec;
     ret = timer_settime(timer, TIMER_ABSTIME, &ts, NULL);
-    if(ret)
+    if (ret)
     {
         perror("timer_settime");
     }
@@ -486,7 +486,7 @@ void platform_init(int argc, char *argv[])
 	printf("plaform init here\n");
 	signal(SIGTERM, sigterm_handler);
 	signal(SIGINT, sigterm_handler);
-
+#if 0
 	if (argc > 1)
 	{
     	fd = open(argv[1], O_RDWR | O_SYNC | O_NOCTTY);
@@ -499,6 +499,7 @@ void platform_init(int argc, char *argv[])
 		DEBUG_ERROR("Couldn't open serial port %s\n", argc > 1 ? argv[1] : "/dev/ttyBMP0");
 		return;
 	}
+
 	/* BMP only offers an USB-Serial connection with no real serial
 	 * line in between. No need for baudrate or parity.!
 	 */
@@ -507,6 +508,11 @@ void platform_init(int argc, char *argv[])
 		DEBUG_ERROR("Oh no failed init attribs\n");
 		printf("red Oh no failed init attribs\n");
 	}
+#else
+	/* 使用 socket 通信 */
+extern int gdb_if_init(void);
+    gdb_if_init();
+#endif
 
     if (gpio_handler_init() < 0)
 	{
