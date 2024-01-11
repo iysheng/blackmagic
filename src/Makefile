@@ -119,7 +119,7 @@ ifneq ($(PC_HOSTED),1)
 LDFLAGS += -Wl,--print-memory-usage
 endif
 
-OPT_FLAGS ?= -O2 -static
+OPT_FLAGS ?= -O2
 CFLAGS += $(OPT_FLAGS)
 LDFLAGS += $(OPT_FLAGS)
 
